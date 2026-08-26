@@ -1,0 +1,177 @@
+{
+  "id": "52a4e868-a72f-43d1-80cf-06e299ae5c52",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.config": {
+      "name": "config",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "filament_cost_per_kg": {
+          "name": "filament_cost_per_kg",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "electricity_cost_per_kwh": {
+          "name": "electricity_cost_per_kwh",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "printer_power_watts": {
+          "name": "printer_power_watts",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "labor_cost_per_hour": {
+          "name": "labor_cost_per_hour",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "profit_margin": {
+          "name": "profit_margin",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "failure_rate": {
+          "name": "failure_rate",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 5
+        },
+        "overhead_percentage": {
+          "name": "overhead_percentage",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 10
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.pricing_records": {
+      "name": "pricing_records",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "piece_name": {
+          "name": "piece_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "filament_weight_g": {
+          "name": "filament_weight_g",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "print_time_hours": {
+          "name": "print_time_hours",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "config_snapshot": {
+          "name": "config_snapshot",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "material_cost": {
+          "name": "material_cost",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "energy_cost": {
+          "name": "energy_cost",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "labor_cost": {
+          "name": "labor_cost",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "overhead_cost": {
+          "name": "overhead_cost",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "total_cost": {
+          "name": "total_cost",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "final_price": {
+          "name": "final_price",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

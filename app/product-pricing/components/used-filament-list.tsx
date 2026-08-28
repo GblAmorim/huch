@@ -1,11 +1,11 @@
 import React from "react";
-import { RegisteredFilaments } from "../../product-pricing/types";
 import { UsedFilamentItem } from "./used-filament-item";
+import { Button } from "@/components/ui/button";
 
 type Props = {
-  usedFilaments: FilamentoUsado[];
+  usedFilaments: UsedFilament[];
   dispatch: React.Dispatch<ProductPricingAction>;
-  registeredFilaments: RegisteredFilaments[];
+  registeredFilaments: RegisteredFilament[];
 };
 
 export const UsedFilamentList = React.memo(function UsedFilamentList({
@@ -17,35 +17,37 @@ export const UsedFilamentList = React.memo(function UsedFilamentList({
     <div className="dynamic-list">
       <h4>Filamentos utilizados</h4>
 
-      {registeredFilaments.map((filamento, index) => (
+      {usedFilaments.map((filament, index) => (
         <UsedFilamentItem
-          key={filamento.id}
-          filamento={filamento}
+          key={filament.id}
+          filament={filament}
           index={index}
           registeredFilaments={registeredFilaments}
           onUpdate={(field) =>
             dispatch({
-              type: "UPDATE_FILAMENTO",
-              payload: { id: filamento.id, field },
+              type: "UPDATE_FILAMENT",
+              payload: { id: filament.id, field },
             })
           }
           onRemove={() =>
             dispatch({
-              type: "REMOVE_FILAMENTO",
-              payload: { id: filamento.id },
+              type: "REMOVE_FILAMENT",
+              payload: { id: filament.id },
             })
           }
           canRemove={usedFilaments.length > 1}
         />
       ))}
 
-      <button
-        type="button"
-        className="btn-add"
-        onClick={() => dispatch({ type: "ADD_FILAMENTO" })}
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={() => {
+          dispatch({ type: "ADD_FILAMENT" });
+        }}
       >
-        + Adicionar filamento
-      </button>
+        Adicionar filamento
+      </Button>
     </div>
   );
 });

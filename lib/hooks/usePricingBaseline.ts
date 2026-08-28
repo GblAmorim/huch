@@ -2,7 +2,7 @@ import { useReducer, useMemo } from "react";
 import { productPricingReducer } from "@/app/product-pricing/reducer";
 import { initialState } from "@/app/product-pricing/initialState";
 
-export function useProductPricing() {
+export function usePricingBaseline() {
   const [state, dispatch] = useReducer(productPricingReducer, initialState);
 
   const canCalculate = useMemo(() => {

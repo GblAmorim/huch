@@ -7,58 +7,14 @@ import { toast } from "sonner";
 import type { PricingResult } from "@/lib/schemas";
 
 interface Props {
-  onCalculated: (result: PricingResult & { productName: string }) => void;
+  dispatch: React.Dispatch<ProductPricingAction>;
+  registeredAddons: PricingBaseline["addons"];
 }
 
-export function UsedAddonsForm({ onCalculated }: Props) {
+export function UsedAddonsForm({ dispatch, registeredAddons }: Props) {
   const [accessoryName, setAccessoryName] = useState("");
   const [accessoryUnitPrice, setAccessoryUnitPrice] = useState("");
   const [accessoryQuantity, setAccessoryQuantity] = useState("");
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-
-    if (!accessoryName || accessoryName.trim() === "") {
-      toast.error("Nome do acessório inválido");
-      return;
-    }
-    if (
-      isNaN(parseFloat(accessoryUnitPrice)) ||
-      parseFloat(accessoryUnitPrice) < 0
-    ) {
-      toast.error("Custo unitário do acessório inválido");
-      return;
-    }
-    if (
-      isNaN(parseInt(accessoryQuantity)) ||
-      parseInt(accessoryQuantity) <= 0
-    ) {
-      toast.error("Quantidade do acessório inválida");
-      return;
-    }
-
-    const res = await fetch("/api/pricing", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        accessoryName,
-        accessoryUnitPrice: parseFloat(accessoryUnitPrice),
-        accessoryQuantity: parseInt(accessoryQuantity),
-      }),
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      onCalculated({ ...data, productName });
-      toast.success("Preço calculado e salvo!");
-      setAccessoryName("");
-      setAccessoryUnitPrice("");
-      setAccessoryQuantity("");
-    } else {
-      const err = await res.json();
-      toast.error(err.error ?? "Erro ao calcular preço");
-    }
-  }
 
   return (
     <div>

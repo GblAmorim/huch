@@ -3,80 +3,26 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
-import type { PricingResult } from "@/lib/schemas";
+
+import { UsedFilamentList } from "./used-filament-list";
 
 interface Props {
-  onCalculated: (result: PricingResult & { productName: string }) => void;
+  baselineData: PricingBaseline;
+  dispatch: React.Dispatch<ProductPricingAction>;
+  usedFilaments: UsedFilament[];
 }
 
-export function PrintingDataForm({ onCalculated }: Props) {
+export function PrintingDataForm({
+  baselineData,
+  dispatch,
+  usedFilaments,
+}: Props) {
   const [productName, setProductName] = useState("");
   const [printTimeHours, setPrintTimeHours] = useState("");
   const [printTimeMinutes, setPrintTimeMinutes] = useState("");
   const [desiredProfit, setDesiredProfit] = useState("");
   const [piecesQuantity, setPiecesQuantity] = useState("1");
   const [failureChance, setFailureChance] = useState("");
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-
-    const totalPrintTimeMinutes =
-      parseFloat(printTimeHours) * 60 + parseFloat(printTimeMinutes);
-
-    if (!productName.trim()) {
-      toast.error("Informe o nome da peça");
-      return;
-    }
-    if (isNaN(totalPrintTimeMinutes) || totalPrintTimeMinutes <= 0) {
-      toast.error("Tempo de impressão inválido");
-      return;
-    }
-    if (isNaN(parseFloat(desiredProfit)) || parseFloat(desiredProfit) < 0) {
-      toast.error("Lucro desejado inválido");
-      return;
-    }
-    if (isNaN(parseInt(piecesQuantity)) || parseInt(piecesQuantity) <= 0) {
-      toast.error("Quantidade de peças inválida");
-      return;
-    }
-    if (
-      failureChance &&
-      (isNaN(parseInt(failureChance)) ||
-        parseInt(failureChance) < 0 ||
-        parseInt(failureChance) > 100)
-    ) {
-      toast.error("Chance de falha inválida");
-      return;
-    }
-
-    const res = await fetch("/api/pricing", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        productName,
-        printTimeMinutes: totalPrintTimeMinutes,
-        desiredProfit: parseFloat(desiredProfit),
-        piecesQuantity: parseInt(piecesQuantity),
-        failureChance: parseInt(failureChance),
-      }),
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      onCalculated({ ...data, productName });
-      toast.success("Preço calculado e salvo!");
-      setProductName("");
-      setPrintTimeHours("");
-      setPrintTimeMinutes("");
-      setDesiredProfit("");
-      setPiecesQuantity("");
-      setFailureChance("");
-    } else {
-      const err = await res.json();
-      toast.error(err.error ?? "Erro ao calcular preço");
-    }
-  }
 
   return (
     <div>
@@ -158,6 +104,11 @@ export function PrintingDataForm({ onCalculated }: Props) {
           </div>
         </div>
       </div>
+      <UsedFilamentList
+        registeredFilaments={baselineData.filaments}
+        dispatch={dispatch}
+        usedFilaments={usedFilaments}
+      ></UsedFilamentList>
     </div>
   );
 }

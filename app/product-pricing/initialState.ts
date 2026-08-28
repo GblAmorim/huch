@@ -4,6 +4,7 @@ export const initialState: ProductPricingState = {
   printingData: {
     printTimeHours: 0,
     printTimeMinutes: 0,
+    totalPrintTimeMinutes: 0,
     piecesQuantity: 1,
     usedFilaments: [
       { id: crypto.randomUUID(), filamentId: "", usedAmountG: 0 },
@@ -13,12 +14,12 @@ export const initialState: ProductPricingState = {
   productLabor: {
     modelingTimeHours: 0,
     modelingTimeMinutes: 0,
+    totalModelingTimeMinutes: 0,
     postPrintTimeHours: 0,
     postPrintTimeMinutes: 0,
+    postPrintTotalTimeMinutes: 0,
   },
-  addons: {
-    addons: [{ id: crypto.randomUUID(), addonId: "", quantity: 0 }], // começa vazio — pode não ter addons
-  },
+  usedAddons: [{ id: crypto.randomUUID(), addonId: "", quantity: 0 }],
   status: "idle",
   result: null,
   error: null,

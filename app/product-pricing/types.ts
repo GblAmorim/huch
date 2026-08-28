@@ -63,6 +63,7 @@ type UsedAddon = {
 type PrintingData = {
   printTimeHours: number;
   printTimeMinutes: number;
+  totalPrintTimeMinutes: number;
   usedFilaments: UsedFilament[];
   piecesQuantity: number;
   failureChancePercentage: number;
@@ -71,12 +72,10 @@ type PrintingData = {
 type ProductLabor = {
   modelingTimeHours: number;
   modelingTimeMinutes: number;
+  totalModelingTimeMinutes: number;
   postPrintTimeHours: number;
   postPrintTimeMinutes: number;
-};
-
-type Addons = {
-  addons: UsedAddon[];
+  postPrintTotalTimeMinutes: number;
 };
 
 type ProductPricingState = {
@@ -84,7 +83,7 @@ type ProductPricingState = {
   desiredProfit: number;
   printingData: PrintingData;
   productLabor: ProductLabor;
-  addons: Addons;
+  usedAddons: UsedAddon[];
   status: "idle" | "calculating" | "calculated" | "saving" | "saved" | "error";
   result: PricingResult | null;
   error: string | null;
@@ -116,4 +115,14 @@ type ProductPricingAction =
   | {
       type: "UPDATE_FILAMENT";
       payload: { id: string; field: Partial<UsedFilament> };
-    };
+    }
+  | { type: "ADD_ADDON" }
+  | { type: "REMOVE_ADDON"; payload: { id: string } }
+  | {
+      type: "UPDATE_ADDON";
+      payload: { id: string; field: Partial<UsedAddon> };
+    }
+  | { type: "CALCULATE_START" }
+  | { type: "CALCULATE_SUCCESS"; payload: PricingResult }
+  | { type: "CALCULATE_ERROR"; payload: string }
+  | { type: "RESET" };

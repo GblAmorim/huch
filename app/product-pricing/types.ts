@@ -26,6 +26,7 @@ type PricingBaseline = {
     value: number;
     energyConsumptionKw: number;
     lifeCycleHr: number;
+    filamentWastePercentage: number
   };
   energy: {
     valueKwH: number;
@@ -40,7 +41,10 @@ type PricingBaseline = {
     platformFee: number;
     riskReservePercentage: number;
   };
-  filaments: RegisteredFilament[];
+  filaments: {
+    list: RegisteredFilament[];
+    wastePercentage: number;
+  };
   addons: RegisteredAddons[];
   labor: {
     modelingLaborCostPerHour: number;
@@ -90,13 +94,46 @@ type ProductPricingState = {
 };
 
 type PricingResult = {
-  filamentCost: number;
-  energyCost: number;
-  depreciationCost: number;
-  laborCost: number;
-  addonsCost: number;
-  failureCost: number;
+  filamentCosts: {
+    oneByOne: [
+      {
+        cost: number;
+        wasteG: number;
+        wasteCost: number;
+        filamentWithWasteCost: number;
+        filamentWithWasteG: number;
+        usedAmountG: number;
+        pricePerKg: number;
+      }
+    ]
+    totalFilamentG: number;
+    totalFilamentCost: number;
+    totalFilamentWasteG: number;
+    totalFilamentWithWasteG: number;
+    totalFilamentWasteCost: number;
+    totalFilamentWithWasteCost: number;
+  }
+  printerCosts: {
+    depreciationCost: number;
+    energyCost: number;
+    failureChanceCost: number;
+  }
+  laborCosts: {
+    modelingLaborCost: number;
+    postPrintingLaborCost: number;
+  }
+  addonsCosts: {
+    totalAddonsCost: number;
+    oneByOne: [
+      {
+        cost: number;
+      }
+    ]
+  };
+  fixedCosts: number;
+  logisticCosts: number;
   totalProductionCost: number;
+  totalProductionCostWithLogisticsAndPacking: number;
   taxes: number;
   profit: number;
   finalPrice: number;
@@ -113,15 +150,15 @@ type ProductPricingAction =
   | { type: "ADD_FILAMENT" }
   | { type: "REMOVE_FILAMENT"; payload: { id: string } }
   | {
-      type: "UPDATE_FILAMENT";
-      payload: { id: string; field: Partial<UsedFilament> };
-    }
+    type: "UPDATE_FILAMENT";
+    payload: { id: string; field: Partial<UsedFilament> };
+  }
   | { type: "ADD_ADDON" }
   | { type: "REMOVE_ADDON"; payload: { id: string } }
   | {
-      type: "UPDATE_ADDON";
-      payload: { id: string; field: Partial<UsedAddon> };
-    }
+    type: "UPDATE_ADDON";
+    payload: { id: string; field: Partial<UsedAddon> };
+  }
   | { type: "CALCULATE_START" }
   | { type: "CALCULATE_SUCCESS"; payload: PricingResult }
   | { type: "CALCULATE_ERROR"; payload: string }

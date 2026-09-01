@@ -5,19 +5,82 @@ export function price(
   const pricingDetails: PricingDetails[] = [];
 
   // 1. CUSTO DE FILAMENTOS
-  // cada filamento usado: (gramas / 1000) * valorPorKg
-  const filamentCost = form.printingData.usedFilaments.reduce((total, f) => {
-    const registered = baseline.filaments.find((fc) => fc.id === f.filamentId);
-    if (!registered || f.usedAmountG <= 0) return total;
-    const custo = (f.usedAmountG / 1000) * registered.pricePerKg;
-    return total + custo;
-  }, 0);
+  const usedFilaments = form.printingData.usedFilaments;
+  const registeredFilaments = baseline.filaments;
 
+  const filamentCostOneByOne = usedFilaments.flatMap(usedFilament => {
+    const isRegistered = registeredFilaments.list.find((registeredFilament) => registeredFilament.id === usedFilament.filamentId);
+    if (!isRegistered || usedFilament.usedAmountG <= 0) return [];
+    const usedFilamentCost = (usedFilament.usedAmountG / 1000) * isRegistered.pricePerKg;
+    const wasteG = (usedFilament.usedAmountG * (baseline.filaments.wastePercentage / 100));
+    const wasteCost = wasteG * isRegistered.pricePerKg;
+    const usedFilamenWithWasteCost = usedFilamentCost + wasteCost;
+    const usedFilamentWithWasteG = usedFilament.usedAmountG + wasteG;
+    return [ { cost: usedFilamentCost, wasteG, wasteCost, filamentWithWasteCost: usedFilamenWithWasteCost, filamentWithWasteG: usedFilamentWithWasteG, usedAmountG: usedFilament.usedAmountG, pricePerKg: isRegistered.pricePerKg }];
+  });
+  const totalFilamentG = filamentCostOneByOne.reduce((total, usedFilament) => {
+    return total + (usedFilament.usedAmountG || 0);
+  }, 0);
   pricingDetails.push({
-    label: "Filamentos",
-    value: filamentCost,
+    label: "Peso total de filamentos gastos",
+    value: totalFilamentG,
+    formula: "Σ (gramas usados)",
+  });
+
+  const totalFilamentCost = filamentCostOneByOne.reduce((total, usedFilament) => {
+    return total + (usedFilament.cost || 0);
+  }, 0);
+  pricingDetails.push({
+    label: "Valor total do filamento usado",
+    value: totalFilamentCost,
+    formula: "Σ (gramas usados ÷ 1000) × valor/Kg",
+  });
+
+  const totalFilamentWasteG = filamentCostOneByOne.reduce((total, usedFilament) => {
+    return total + (usedFilament.wasteG || 0);
+  }, 0);
+  pricingDetails.push({
+    label: "Peso total do desperdício de filamentos",
+    value: totalFilamentWasteG,
+    formula: "Σ (gramas de desperdício)",
+  });
+
+  const totalFilamentWasteCost = filamentCostOneByOne.reduce((total, usedFilament) => {
+    return total + (usedFilament.wasteCost || 0);
+  }, 0);
+  pricingDetails.push({
+    label: "Valor total do desperdício de filamentos",
+    value: totalFilamentWasteCost,
     formula: "Σ (gramas ÷ 1000) × valor/Kg",
   });
+
+  const totalFilamentWithWasteG = filamentCostOneByOne.reduce((total, usedFilament) => {
+    return total + (usedFilament.filamentWithWasteG || 0);
+  }, 0);
+  pricingDetails.push({
+    label: "Peso total de filamentos com desperdício",
+    value: totalFilamentWithWasteG,
+    formula: "Σ (gramas ÷ 1000) × valor/Kg",
+  });
+
+  const totalFilamentWithWasteCost = filamentCostOneByOne.reduce((total, usedFilament) => {
+    return total + (usedFilament.filamentWithWasteCost || 0);
+  }, 0);
+  pricingDetails.push({
+    label: "Valor total de filamentos com desperdício",
+    value: totalFilamentWithWasteCost,
+    formula: "Σ (gramas ÷ 1000) × valor/Kg",
+  });
+
+  const filamentCosts: PricingResult['filamentCosts'] = {
+    oneByOne: filamentCostOneByOne,
+    totalFilamentG,
+    totalFilamentCost,
+    totalFilamentWasteG,
+    totalFilamentWasteCost,
+    totalFilamentWithWasteG,
+    totalFilamentWithWasteCost,
+  };
 
   // 2. CUSTO DE ENERGIA
   // consumoKW × tempoHoras × .valueKwH
@@ -127,7 +190,7 @@ export function price(
   pricingDetails.push({ label: "Preço final", value: finalPrice });
 
   return {
-    filamentCost,
+    filamentCosts,
     energyCost,
     depreciationCost,
     laborCost,

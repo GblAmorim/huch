@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useProductPricing } from "@/lib/hooks/useProductPricing";
 import { price } from "./price";
 import { UsedAddonsList } from "./components/used-addons-list";
+import { PricingResults } from "./components/pricing-results";
 
 const ProductPricingPage = () => {
   const { state, dispatch, canCalculate } = useProductPricing();
@@ -21,6 +22,7 @@ const ProductPricingPage = () => {
         value: 700000,
         lifeCycleHr: 24000,
         energyConsumptionKw: 0.3 * 0.67, // Depois armazenar a % para cálculo
+        filamentWastePercentage: 2, // Exemplo de desperdício de filamento em %
       },
       energy: {
         valueKwH: 84,
@@ -156,6 +158,7 @@ const ProductPricingPage = () => {
           {loading ? "Calculando..." : "Calcular Preço"}
         </Button>
       </form>
+      <PricingResults pricingResults={state.result} />
     </div>
   );
 };

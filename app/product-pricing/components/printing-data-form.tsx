@@ -105,7 +105,7 @@ export function PrintingDataForm({
         </div>
       </div>
       <UsedFilamentList
-        registeredFilaments={baselineData.filaments}
+        registeredFilaments={baselineData.filaments.list}
         dispatch={dispatch}
         usedFilaments={usedFilaments}
       ></UsedFilamentList>

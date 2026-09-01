@@ -26,7 +26,7 @@ type PricingBaseline = {
     value: number;
     energyConsumptionKw: number;
     lifeCycleHr: number;
-    filamentWastePercentage: number
+    filamentWastePercentage: number;
   };
   energy: {
     valueKwH: number;
@@ -45,11 +45,16 @@ type PricingBaseline = {
     list: RegisteredFilament[];
     wastePercentage: number;
   };
-  addons: RegisteredAddons[];
+  logistics: {
+    gasPricePerLitter: number;
+    kmPerLitter: number;
+    distanceKm: number;
+  };
   labor: {
     modelingLaborCostPerHour: number;
     postPrintingLaborCostPerHour: number;
   };
+  addons: RegisteredAddons[];
 };
 
 type UsedFilament = {
@@ -60,6 +65,7 @@ type UsedFilament = {
 
 type UsedAddon = {
   id: string;
+  type: "accessory" | "packing";
   addonId: string;
   quantity: number;
 };
@@ -79,7 +85,7 @@ type ProductLabor = {
   totalModelingTimeMinutes: number;
   postPrintTimeHours: number;
   postPrintTimeMinutes: number;
-  postPrintTotalTimeMinutes: number;
+  totalPostPrintTimeMinutes: number;
 };
 
 type ProductPricingState = {
@@ -95,48 +101,48 @@ type ProductPricingState = {
 
 type PricingResult = {
   filamentCosts: {
-    oneByOne: [
-      {
-        cost: number;
-        wasteG: number;
-        wasteCost: number;
-        filamentWithWasteCost: number;
-        filamentWithWasteG: number;
-        usedAmountG: number;
-        pricePerKg: number;
-      }
-    ]
+    oneByOne: {
+      cost: number;
+      wasteG: number;
+      wasteCost: number;
+      filamentWithWasteCost: number;
+      filamentWithWasteG: number;
+      usedAmountG: number;
+      pricePerKg: number;
+    }[];
     totalFilamentG: number;
     totalFilamentCost: number;
     totalFilamentWasteG: number;
     totalFilamentWithWasteG: number;
     totalFilamentWasteCost: number;
     totalFilamentWithWasteCost: number;
-  }
-  printerCosts: {
+  };
+  printingCosts: {
     depreciationCost: number;
     energyCost: number;
-    failureChanceCost: number;
-  }
+    failureCost: number;
+  };
+  fixedCosts: number;
   laborCosts: {
     modelingLaborCost: number;
     postPrintingLaborCost: number;
-  }
+  };
   addonsCosts: {
     totalAddonsCost: number;
-    oneByOne: [
-      {
-        cost: number;
-      }
-    ]
+    oneByOne: {
+      cost: number;
+      type: "accessory" | "packing";
+    }[];
   };
-  fixedCosts: number;
   logisticCosts: number;
   totalProductionCost: number;
   totalProductionCostWithLogisticsAndPacking: number;
   taxes: number;
-  profit: number;
-  finalPrice: number;
+  finalPrices: {
+    finalPlatformPrice: number;
+    finalPriceCreditCard: number;
+    finalPricePix: number;
+  };
   details: PricingDetails[];
 };
 
@@ -150,15 +156,15 @@ type ProductPricingAction =
   | { type: "ADD_FILAMENT" }
   | { type: "REMOVE_FILAMENT"; payload: { id: string } }
   | {
-    type: "UPDATE_FILAMENT";
-    payload: { id: string; field: Partial<UsedFilament> };
-  }
+      type: "UPDATE_FILAMENT";
+      payload: { id: string; field: Partial<UsedFilament> };
+    }
   | { type: "ADD_ADDON" }
   | { type: "REMOVE_ADDON"; payload: { id: string } }
   | {
-    type: "UPDATE_ADDON";
-    payload: { id: string; field: Partial<UsedAddon> };
-  }
+      type: "UPDATE_ADDON";
+      payload: { id: string; field: Partial<UsedAddon> };
+    }
   | { type: "CALCULATE_START" }
   | { type: "CALCULATE_SUCCESS"; payload: PricingResult }
   | { type: "CALCULATE_ERROR"; payload: string }

@@ -1,14 +1,13 @@
 import React from "react";
+import { PricingResult } from "./pricing-result";
 
 type Props = {
-    pricingResults: PricingResult | null;
+  pricingResults: PricingResult | null;
 };
 
-export const PricingResults = React.memo(function PricingResults({ totalPrice }: Props) {
-    return (
-        <div>
-            <h4>Resultado da Precificação</h4>
-            <p>Preço total: {totalPrice.toFixed(2)}</p>
-        </div>
-    );
+export const PricingResults = React.memo(function PricingResults({
+  pricingResults,
+}: Props) {
+  if (!pricingResults) return null;
+  return <PricingResult result={pricingResults} />;
 });

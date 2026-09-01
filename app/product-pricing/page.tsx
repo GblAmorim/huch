@@ -27,35 +27,38 @@ const ProductPricingPage = () => {
       energy: {
         valueKwH: 84,
       },
-      filaments: [
-        {
-          id: "1",
-          brand: "3D Prime",
-          type: "PLA Basic",
-          color: "Verde",
-          pricePerKg: 8100,
-          remainingInStockG: 500,
-          note: "Filamento PLA básico da 3D Prime",
-        },
-        {
-          id: "2",
-          brand: "3D Prime",
-          type: "PLA Troca de Cor",
-          color: "Branco",
-          pricePerKg: 6000,
-          remainingInStockG: 500,
-          note: "Filamento PLA básico troca de cor da 3D Prime",
-        },
-        {
-          id: "3",
-          brand: "Sunlu",
-          type: "PLA Premium",
-          color: "Azul",
-          pricePerKg: 10000,
-          remainingInStockG: 100,
-          note: "Filamento PLA Premium Azul da Sunlu",
-        },
-      ],
+      filaments: {
+        list: [
+          {
+            id: "1",
+            brand: "3D Prime",
+            type: "PLA Basic",
+            color: "Verde",
+            pricePerKg: 8100,
+            remainingInStockG: 500,
+            note: "Filamento PLA básico da 3D Prime",
+          },
+          {
+            id: "2",
+            brand: "3D Prime",
+            type: "PLA Troca de Cor",
+            color: "Branco",
+            pricePerKg: 6000,
+            remainingInStockG: 500,
+            note: "Filamento PLA básico troca de cor da 3D Prime",
+          },
+          {
+            id: "3",
+            brand: "Sunlu",
+            type: "PLA Premium",
+            color: "Azul",
+            pricePerKg: 10000,
+            remainingInStockG: 100,
+            note: "Filamento PLA Premium Azul da Sunlu",
+          },
+        ],
+        wastePercentage: 5,
+      },
       addons: [
         {
           id: "1",
@@ -83,6 +86,11 @@ const ProductPricingPage = () => {
       labor: {
         modelingLaborCostPerHour: 3000,
         postPrintingLaborCostPerHour: 1500,
+      },
+      logistics: {
+        gasPricePerLitter: 600,
+        kmPerLitter: 12,
+        distanceKm: 10,
       },
       taxes: {
         standardFailureChance: 15,

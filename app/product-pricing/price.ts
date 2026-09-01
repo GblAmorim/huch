@@ -8,15 +8,29 @@ export function price(
   const usedFilaments = form.printingData.usedFilaments;
   const registeredFilaments = baseline.filaments;
 
-  const filamentCostOneByOne = usedFilaments.flatMap(usedFilament => {
-    const isRegistered = registeredFilaments.list.find((registeredFilament) => registeredFilament.id === usedFilament.filamentId);
+  const filamentCostOneByOne = usedFilaments.flatMap((usedFilament) => {
+    const isRegistered = registeredFilaments.list.find(
+      (registeredFilament) => registeredFilament.id === usedFilament.filamentId,
+    );
     if (!isRegistered || usedFilament.usedAmountG <= 0) return [];
-    const usedFilamentCost = (usedFilament.usedAmountG / 1000) * isRegistered.pricePerKg;
-    const wasteG = (usedFilament.usedAmountG * (baseline.filaments.wastePercentage / 100));
+    const usedFilamentCost =
+      (usedFilament.usedAmountG / 1000) * isRegistered.pricePerKg;
+    const wasteG =
+      usedFilament.usedAmountG * (baseline.filaments.wastePercentage / 100);
     const wasteCost = wasteG * isRegistered.pricePerKg;
-    const usedFilamenWithWasteCost = usedFilamentCost + wasteCost;
+    const usedFilamentWithWasteCost = usedFilamentCost + wasteCost;
     const usedFilamentWithWasteG = usedFilament.usedAmountG + wasteG;
-    return [ { cost: usedFilamentCost, wasteG, wasteCost, filamentWithWasteCost: usedFilamenWithWasteCost, filamentWithWasteG: usedFilamentWithWasteG, usedAmountG: usedFilament.usedAmountG, pricePerKg: isRegistered.pricePerKg }];
+    return [
+      {
+        cost: usedFilamentCost,
+        wasteG,
+        wasteCost,
+        filamentWithWasteCost: usedFilamentWithWasteCost,
+        filamentWithWasteG: usedFilamentWithWasteG,
+        usedAmountG: usedFilament.usedAmountG,
+        pricePerKg: isRegistered.pricePerKg,
+      },
+    ];
   });
   const totalFilamentG = filamentCostOneByOne.reduce((total, usedFilament) => {
     return total + (usedFilament.usedAmountG || 0);
@@ -27,52 +41,67 @@ export function price(
     formula: "Σ (gramas usados)",
   });
 
-  const totalFilamentCost = filamentCostOneByOne.reduce((total, usedFilament) => {
-    return total + (usedFilament.cost || 0);
-  }, 0);
+  const totalFilamentCost = filamentCostOneByOne.reduce(
+    (total, usedFilament) => {
+      return total + (usedFilament.cost || 0);
+    },
+    0,
+  );
   pricingDetails.push({
     label: "Valor total do filamento usado",
     value: totalFilamentCost,
     formula: "Σ (gramas usados ÷ 1000) × valor/Kg",
   });
 
-  const totalFilamentWasteG = filamentCostOneByOne.reduce((total, usedFilament) => {
-    return total + (usedFilament.wasteG || 0);
-  }, 0);
+  const totalFilamentWasteG = filamentCostOneByOne.reduce(
+    (total, usedFilament) => {
+      return total + (usedFilament.wasteG || 0);
+    },
+    0,
+  );
   pricingDetails.push({
     label: "Peso total do desperdício de filamentos",
     value: totalFilamentWasteG,
     formula: "Σ (gramas de desperdício)",
   });
 
-  const totalFilamentWasteCost = filamentCostOneByOne.reduce((total, usedFilament) => {
-    return total + (usedFilament.wasteCost || 0);
-  }, 0);
+  const totalFilamentWasteCost = filamentCostOneByOne.reduce(
+    (total, usedFilament) => {
+      return total + (usedFilament.wasteCost || 0);
+    },
+    0,
+  );
   pricingDetails.push({
     label: "Valor total do desperdício de filamentos",
     value: totalFilamentWasteCost,
     formula: "Σ (gramas ÷ 1000) × valor/Kg",
   });
 
-  const totalFilamentWithWasteG = filamentCostOneByOne.reduce((total, usedFilament) => {
-    return total + (usedFilament.filamentWithWasteG || 0);
-  }, 0);
+  const totalFilamentWithWasteG = filamentCostOneByOne.reduce(
+    (total, usedFilament) => {
+      return total + (usedFilament.filamentWithWasteG || 0);
+    },
+    0,
+  );
   pricingDetails.push({
     label: "Peso total de filamentos com desperdício",
     value: totalFilamentWithWasteG,
     formula: "Σ (gramas ÷ 1000) × valor/Kg",
   });
 
-  const totalFilamentWithWasteCost = filamentCostOneByOne.reduce((total, usedFilament) => {
-    return total + (usedFilament.filamentWithWasteCost || 0);
-  }, 0);
+  const totalFilamentWithWasteCost = filamentCostOneByOne.reduce(
+    (total, usedFilament) => {
+      return total + (usedFilament.filamentWithWasteCost || 0);
+    },
+    0,
+  );
   pricingDetails.push({
     label: "Valor total de filamentos com desperdício",
     value: totalFilamentWithWasteCost,
     formula: "Σ (gramas ÷ 1000) × valor/Kg",
   });
 
-  const filamentCosts: PricingResult['filamentCosts'] = {
+  const filamentCosts: PricingResult["filamentCosts"] = {
     oneByOne: filamentCostOneByOne,
     totalFilamentG,
     totalFilamentCost,
@@ -82,11 +111,24 @@ export function price(
     totalFilamentWithWasteCost,
   };
 
-  // 2. CUSTO DE ENERGIA
-  // consumoKW × tempoHoras × .valueKwH
+  // 2. CUSTOS DA IMPRESSÃO
+  // (printer value ÷ lifeCycleHr) × .printTimeHours
+  const depreciationCost =
+    (baseline.printer.value / baseline.printer.lifeCycleHr) *
+    (form.printingData.totalPrintTimeMinutes / 60);
+
+  pricingDetails.push({
+    label: "Depreciação da impressora",
+    value: depreciationCost,
+    formula: `(R$ ${baseline.printer.value} ÷ ${baseline.printer.lifeCycleHr}h) × ${(
+      form.printingData.totalPrintTimeMinutes / 60
+    ).toFixed(2)}h`,
+  });
+
   const energyCost =
     baseline.printer.energyConsumptionKw *
-    form.printingData.printTimeHours *
+    0.67 *
+    (form.printingData.totalPrintTimeMinutes / 60) *
     baseline.energy.valueKwH;
 
   pricingDetails.push({
@@ -95,111 +137,194 @@ export function price(
     formula: `${baseline.printer.energyConsumptionKw} kW × ${form.printingData.printTimeHours}h × R$ ${baseline.energy.valueKwH}/kWh`,
   });
 
-  // 3. DEPRECIAÇÃO DA IMPRESSORA
-  // (printer value ÷ lifeCycleHr) × .printTimeHours
-  const depreciationCost =
-    (baseline.printer.value / baseline.printer.lifeCycleHr) *
-    form.printingData.printTimeHours;
+  const failureCost =
+    (depreciationCost + energyCost + totalFilamentWithWasteCost) *
+    (baseline.taxes.standardFailureChance / 100);
 
   pricingDetails.push({
-    label: "Depreciação da impressora",
-    value: depreciationCost,
-    formula: `(R$ ${baseline.printer.value} ÷ ${baseline.printer.lifeCycleHr}h) × ${form.printingData.printTimeHours}h`,
+    label: `Custo de falhas (${baseline.taxes.standardFailureChance}%)`,
+    value: failureCost,
+    formula: `custo total de filamento gasto com desperdício + custo da depreciação + custo da energia consumida x ${baseline.taxes.standardFailureChance}% de chance de falha`,
   });
+
+  const printingCosts: PricingResult["printingCosts"] = {
+    depreciationCost,
+    energyCost,
+    failureCost,
+  };
+
+  // 3. CUSTOS FIXOS (gastos mensais fixos como internet, condomínio, aluguel, etc)
+  const totalFixedCosts = 0; // TODO: Implementar cálculo de custos fixos
 
   // 4. MÃO DE OBRA
-  // (tempoPreparo + tempoPosProcessamento) em horas × valorHora
-  const totalLaborTimeMinutes =
-    form.productLabor.modelingTimeMinutes +
-    form.productLabor.postPrintTimeMinutes;
-  const totalHorasMO = totalLaborTimeMinutes / 60;
-  const laborCost = totalHorasMO * baseline.labor.modelingLaborCostPerHour;
+  const modelingLaborCost =
+    (baseline.labor.modelingLaborCostPerHour *
+      (form.productLabor.totalModelingTimeMinutes / 60)) /
+    form.printingData.piecesQuantity;
 
   pricingDetails.push({
-    label: "Mão de obra",
-    value: laborCost,
-    formula: `${totalLaborTimeMinutes}min × R$ ${baseline.labor.modelingLaborCostPerHour}/h`,
+    label: "Custo da Modelagem",
+    value: modelingLaborCost,
+    formula: `valor da hora de modelagem × tempo total de modelagem ÷ quantidade de peças`,
   });
 
+  const postPrintingLaborCost =
+    baseline.labor.postPrintingLaborCostPerHour *
+    (form.productLabor.totalPostPrintTimeMinutes / 60);
+
+  pricingDetails.push({
+    label: "Custo do Pós-Processamento (Montagem/Acabamento)",
+    value: postPrintingLaborCost,
+    formula: `valor da hora de pós-processamento × tempo total de pós-processamento`,
+  });
+
+  const laborCosts: PricingResult["laborCosts"] = {
+    modelingLaborCost,
+    postPrintingLaborCost,
+  };
+
   // 5. ACESSÓRIOS
-  const addonsCost = form.usedAddons.usedAddons.reduce((total, a) => {
-    const cadastrado = baseline.addons.find((ac) => ac.id === a.addonId);
-    if (!cadastrado) return total;
-    return total + cadastrado.unitPrice * a.quantity;
+  const addonsCostOneByOne = form.usedAddons.flatMap((usedAddon) => {
+    const cadastrado = baseline.addons.find(
+      (registeredAddon) => registeredAddon.id === usedAddon.addonId,
+    );
+    if (!cadastrado) return [];
+    return [
+      { cost: cadastrado.unitPrice * usedAddon.quantity, type: usedAddon.type },
+    ];
+  });
+
+  const packingAddonsCost = addonsCostOneByOne
+    .filter((addon) => addon.type === "packing")
+    .reduce((total, addon) => total + addon.cost, 0);
+
+  const accessoryAddonsCost = addonsCostOneByOne
+    .filter((addon) => addon.type === "accessory")
+    .reduce((total, addon) => total + addon.cost, 0);
+
+  const totalAddonsCost = addonsCostOneByOne.reduce((total, usedAddon) => {
+    return total + usedAddon.cost;
   }, 0);
 
   pricingDetails.push({
-    label: "Acessórios",
-    value: addonsCost,
+    label: "Custo Total dos Acessórios",
+    value: totalAddonsCost,
+    formula: "Σ (preço unitário × quantidade)",
   });
 
-  // 6. EMBALAGENS (placeholder — depende de como embalagens estão cadastradas)
-  const custoEmbalagens = 0; // TODO: implementar quando estrutura de embalagens estiver definida
+  const addonsCosts: PricingResult["addonsCosts"] = {
+    totalAddonsCost,
+    oneByOne: addonsCostOneByOne,
+  };
+
+  // 6. CUSTOS LOGÍSTICOS (gastos com transporte, embalagem, etc)
+  const transportCost =
+    ((baseline.logistics.distanceKm / baseline.logistics.kmPerLitter) *
+      baseline.logistics.gasPricePerLitter) /
+    form.printingData.piecesQuantity;
 
   pricingDetails.push({
-    label: "Embalagens",
-    value: custoEmbalagens,
+    label: "Custo do Transporte",
+    value: transportCost,
+    formula: `(distância ÷ km/litro) × preço do litro de combustível ÷ quantidade de peças`,
   });
 
-  // 7. CUSTO DE FALHAS
-  // taxaFalha (do form ou padrão) × custoBase
-  const taxaFalha =
-    form.printingData.failureChancePercentage > 0
-      ? form.printingData.failureChancePercentage
-      : baseline.taxes.standardFailureChance;
+  const logisticCosts =
+    packingAddonsCost +
+    (baseline.logistics.distanceKm / baseline.logistics.kmPerLitter) *
+      baseline.logistics.gasPricePerLitter;
 
-  const productionBaseCost =
-    filamentCost +
+  pricingDetails.push({
+    label: "Custo logístico total",
+    value: logisticCosts,
+    formula: "Σ (custo de transporte + custo de embalagem)",
+  });
+
+  // 8. TOTAL DE PRODUÇÃO E TOTAL ENVIO
+  const totalProductionCost =
+    totalFilamentWithWasteCost +
     energyCost +
     depreciationCost +
-    laborCost +
-    addonsCost +
-    custoEmbalagens;
-
-  const failureCost = productionBaseCost * (taxaFalha / 100);
-
-  pricingDetails.push({
-    label: `Custo de falhas (${taxaFalha}%)`,
-    value: failureCost,
-    formula: `${taxaFalha}% × custo base`,
-  });
-
-  // 8. TOTAL DE PRODUÇÃO
-  const totalProductionCost = productionBaseCost + failureCost;
+    failureCost +
+    totalFixedCosts +
+    modelingLaborCost +
+    postPrintingLaborCost +
+    accessoryAddonsCost;
 
   pricingDetails.push({
     label: "Custo total de produção",
     value: totalProductionCost,
+    formula:
+      "Σ (custos de filamento, energia, depreciação, falhas, mão de obra e acessórios)",
+  });
+
+  const totalProductionCostWithLogisticsAndPacking =
+    totalProductionCost + logisticCosts + packingAddonsCost;
+
+  pricingDetails.push({
+    label: "Custo total de produção + logística + embalagem",
+    value: totalProductionCostWithLogisticsAndPacking,
+    formula:
+      "custo total de produção + custo logístico total + custo de embalagem",
   });
 
   // 9. MARGEM E IMPOSTOS
-  const standardProfit =
-    totalProductionCost * (baseline.taxes.standardProfit / 100);
-  const baseComLucro = totalProductionCost + standardProfit;
-  const governmentTaxes = baseComLucro * (baseline.taxes.governmentTax / 100);
-  const finalPrice = baseComLucro + governmentTaxes;
+  const totalTaxes =
+    baseline.taxes.riskReservePercentage +
+    baseline.taxes.governmentTax +
+    baseline.taxes.creditCartFeePercentage +
+    baseline.taxes.commissionFeePercentage;
 
+  const finalPlatformPrice =
+    (totalProductionCostWithLogisticsAndPacking +
+      form.desiredProfit +
+      baseline.taxes.platformFee) /
+    (1 -
+      (baseline.taxes.riskReservePercentage +
+        baseline.taxes.governmentTax +
+        baseline.taxes.creditCartFeePercentage +
+        baseline.taxes.commissionFeePercentage) /
+        100);
   pricingDetails.push({
-    label: `Margem de lucro (${baseline.taxes.standardProfit}%)`,
-    value: standardProfit,
+    label: "Preço final (Plataforma)",
+    value: finalPlatformPrice,
+    formula: `(custo total de produção + lucro desejado + taxa da plataforma) ÷ (1 - (reserva de risco + impostos + taxa do cartão de crédito + comissão da plataforma))`,
   });
+
+  const finalPriceCreditCard =
+    (totalProductionCostWithLogisticsAndPacking + form.desiredProfit) /
+    (1 -
+      (baseline.taxes.riskReservePercentage +
+        baseline.taxes.governmentTax +
+        baseline.taxes.creditCartFeePercentage) /
+        100);
   pricingDetails.push({
-    label: `Impostos (${baseline.taxes.governmentTax}%)`,
-    value: governmentTaxes,
+    label: "Preço final (Cartão de Crédito)",
+    value: finalPriceCreditCard,
   });
-  pricingDetails.push({ label: "Preço final", value: finalPrice });
+
+  const finalPricePix =
+    (totalProductionCostWithLogisticsAndPacking + form.desiredProfit) /
+    (1 -
+      (baseline.taxes.riskReservePercentage + baseline.taxes.governmentTax) /
+        100);
+  pricingDetails.push({ label: "Preço final (Pix)", value: finalPricePix });
 
   return {
     filamentCosts,
-    energyCost,
-    depreciationCost,
-    laborCost,
-    addonsCost,
-    failureCost,
+    printingCosts,
+    fixedCosts: totalFixedCosts,
+    laborCosts,
+    addonsCosts,
+    logisticCosts,
     totalProductionCost,
-    profit: standardProfit,
-    taxes: governmentTaxes,
-    finalPrice: finalPrice,
+    totalProductionCostWithLogisticsAndPacking,
+    taxes: totalTaxes,
+    finalPrices: {
+      finalPlatformPrice,
+      finalPriceCreditCard,
+      finalPricePix,
+    },
     details: pricingDetails,
   };
 }

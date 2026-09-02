@@ -15,6 +15,7 @@ export function price(
     if (!isRegistered || usedFilament.usedAmountG <= 0) return [];
     const usedFilamentCost =
       (usedFilament.usedAmountG / 1000) * isRegistered.pricePerKg;
+
     const wasteG =
       usedFilament.usedAmountG * (baseline.filaments.wastePercentage / 100);
     const wasteCost = (wasteG / 1000) * isRegistered.pricePerKg;
@@ -139,12 +140,12 @@ export function price(
 
   const failureCost =
     (depreciationCost + energyCost + totalFilamentWithWasteCost) *
-    (baseline.taxes.standardFailureChance / 100);
+    (form.printingData.failureChancePercentage / 100);
 
   pricingDetails.push({
-    label: `Custo de falhas (${baseline.taxes.standardFailureChance}%)`,
+    label: `Custo de falhas (${form.printingData.failureChancePercentage}%)`,
     value: failureCost,
-    formula: `custo total de filamento gasto com desperdício + custo da depreciação + custo da energia consumida x ${baseline.taxes.standardFailureChance}% de chance de falha`,
+    formula: `custo total de filamento gasto com desperdício + custo da depreciação + custo da energia consumida x ${form.printingData.failureChancePercentage}% de chance de falha`,
   });
 
   const printingCosts: PricingResult["printingCosts"] = {
@@ -168,19 +169,30 @@ export function price(
     formula: `valor da hora de modelagem × tempo total de modelagem ÷ quantidade de peças`,
   });
 
-  const postPrintingLaborCost =
+  const postPrintingLaborOnePieceCost =
     baseline.labor.postPrintingLaborCostPerHour *
     (form.productLabor.totalPostPrintTimeMinutes / 60);
 
   pricingDetails.push({
     label: "Custo do Pós-Processamento (Montagem/Acabamento)",
-    value: postPrintingLaborCost,
+    value: postPrintingLaborOnePieceCost,
     formula: `valor da hora de pós-processamento × tempo total de pós-processamento`,
+  });
+
+  const totalPostPrintingLaborCost =
+    baseline.labor.postPrintingLaborCostPerHour *
+    (form.productLabor.totalPostPrintTimeMinutes / 60) * form.printingData.piecesQuantity;
+
+  pricingDetails.push({
+    label: "Custo Total do Pós-Processamento (Montagem/Acabamento)",
+    value: totalPostPrintingLaborCost,
+    formula: `valor da hora de pós-processamento × tempo total de pós-processamento x quantidade de peças`,
   });
 
   const laborCosts: PricingResult["laborCosts"] = {
     modelingLaborCost,
-    postPrintingLaborCost,
+    postPrintingLaborOnePieceCost,
+    totalPostPrintingLaborCost,
   };
 
   // 5. ACESSÓRIOS
@@ -190,7 +202,11 @@ export function price(
     );
     if (!cadastrado) return [];
     return [
-      { cost: cadastrado.unitPrice * usedAddon.quantity, type: usedAddon.type },
+      {
+        name: cadastrado.name,
+        cost: cadastrado.unitPrice * usedAddon.quantity,
+        type: cadastrado.type,
+      },
     ];
   });
 
@@ -219,20 +235,17 @@ export function price(
 
   // 6. CUSTOS LOGÍSTICOS (gastos com transporte, embalagem, etc)
   const transportCost =
-    ((baseline.logistics.distanceKm / baseline.logistics.kmPerLitter) *
-      baseline.logistics.gasPricePerLitter) /
-    form.printingData.piecesQuantity;
+    (baseline.logistics.distanceKm / baseline.logistics.kmPerLitter) *
+    baseline.logistics.gasPricePerLitter;
 
   pricingDetails.push({
-    label: "Custo do Transporte",
+    label: "Custo do Transporte (todas as peças)",
     value: transportCost,
-    formula: `(distância ÷ km/litro) × preço do litro de combustível ÷ quantidade de peças`,
+    formula: `(distância ÷ km/litro) × preço do litro de combustível`,
   });
 
   const logisticCosts =
-    packingAddonsCost +
-    (baseline.logistics.distanceKm / baseline.logistics.kmPerLitter) *
-      baseline.logistics.gasPricePerLitter;
+    packingAddonsCost + transportCost;
 
   pricingDetails.push({
     label: "Custo logístico total",
@@ -248,7 +261,7 @@ export function price(
     failureCost +
     totalFixedCosts +
     modelingLaborCost +
-    postPrintingLaborCost +
+    postPrintingLaborOnePieceCost +
     accessoryAddonsCost;
 
   pricingDetails.push({
@@ -259,7 +272,7 @@ export function price(
   });
 
   const totalProductionCostWithLogisticsAndPacking =
-    totalProductionCost + logisticCosts + packingAddonsCost;
+    totalProductionCost + logisticCosts;
 
   pricingDetails.push({
     label: "Custo total de produção + logística + embalagem",
@@ -284,7 +297,7 @@ export function price(
         baseline.taxes.governmentTax +
         baseline.taxes.creditCartFeePercentage +
         baseline.taxes.commissionFeePercentage) /
-        100);
+      100);
   pricingDetails.push({
     label: "Preço final (Plataforma)",
     value: finalPlatformPrice,
@@ -297,7 +310,7 @@ export function price(
       (baseline.taxes.riskReservePercentage +
         baseline.taxes.governmentTax +
         baseline.taxes.creditCartFeePercentage) /
-        100);
+      100);
   pricingDetails.push({
     label: "Preço final (Cartão de Crédito)",
     value: finalPriceCreditCard,
@@ -307,7 +320,7 @@ export function price(
     (totalProductionCostWithLogisticsAndPacking + form.desiredProfit) /
     (1 -
       (baseline.taxes.riskReservePercentage + baseline.taxes.governmentTax) /
-        100);
+      100);
   pricingDetails.push({ label: "Preço final (Pix)", value: finalPricePix });
 
   return {
@@ -326,5 +339,8 @@ export function price(
       finalPricePix,
     },
     details: pricingDetails,
+    packingAddonsCost,
+    transportCost,
+    piecesQuantity: form.piecesQuantity,
   };
 }

@@ -31,6 +31,38 @@ export function LaborDataForm({ dispatch, baselineData }: Props) {
   const [postPrintingTimeHours, setPostPrintingTimeHours] = useState("");
   const [postPrintTimeMinutes, setPostPrintTimeMinutes] = useState("");
 
+  function updateModelingTime(hours: string, minutes: string) {
+    const hoursValue = Number(hours) || 0;
+    const minutesValue = Number(minutes) || 0;
+
+    dispatch({
+      type: "UPDATE_PRODUCT_LABOR",
+      payload: {
+        field: {
+          modelingTimeHours: hoursValue,
+          modelingTimeMinutes: minutesValue,
+          totalModelingTimeMinutes: hoursValue * 60 + minutesValue,
+        },
+      },
+    });
+  }
+
+  function updatePostPrintingTime(hours: string, minutes: string) {
+    const hoursValue = Number(hours) || 0;
+    const minutesValue = Number(minutes) || 0;
+
+    dispatch({
+      type: "UPDATE_PRODUCT_LABOR",
+      payload: {
+        field: {
+          postPrintingTimeHours: hoursValue,
+          postPrintTimeMinutes: minutesValue,
+          totalPostPrintTimeMinutes: hoursValue * 60 + minutesValue,
+        },
+      },
+    });
+  }
+
   return (
     <div>
       <Popover>
@@ -61,7 +93,10 @@ export function LaborDataForm({ dispatch, baselineData }: Props) {
                   type="number"
                   placeholder="HHH"
                   value={modelingTimeHours}
-                  onChange={(e) => setModelingTimeHours(e.target.value)}
+                  onChange={(e) => {
+                    setModelingTimeHours(e.target.value);
+                    updateModelingTime(e.target.value, modelingTimeMinutes);
+                  }}
                 />
               </div>
               <span className="text-sm font-semibold">:</span>
@@ -73,7 +108,10 @@ export function LaborDataForm({ dispatch, baselineData }: Props) {
                   max={59}
                   placeholder="MM"
                   value={modelingTimeMinutes}
-                  onChange={(e) => setModelingTimeMinutes(e.target.value)}
+                  onChange={(e) => {
+                    setModelingTimeMinutes(e.target.value);
+                    updateModelingTime(modelingTimeHours, e.target.value);
+                  }}
                 />
               </div>
             </div>
@@ -89,7 +127,13 @@ export function LaborDataForm({ dispatch, baselineData }: Props) {
                     type="number"
                     placeholder="HHH"
                     value={postPrintingTimeHours}
-                    onChange={(e) => setPostPrintingTimeHours(e.target.value)}
+                    onChange={(e) => {
+                      setPostPrintingTimeHours(e.target.value);
+                      updatePostPrintingTime(
+                        e.target.value,
+                        postPrintTimeMinutes,
+                      );
+                    }}
                   />
                 </div>
                 <span className="text-sm font-semibold">:</span>
@@ -101,7 +145,13 @@ export function LaborDataForm({ dispatch, baselineData }: Props) {
                     max={59}
                     placeholder="MM"
                     value={postPrintTimeMinutes}
-                    onChange={(e) => setPostPrintTimeMinutes(e.target.value)}
+                    onChange={(e) => {
+                      setPostPrintTimeMinutes(e.target.value);
+                      updatePostPrintingTime(
+                        postPrintingTimeHours,
+                        e.target.value,
+                      );
+                    }}
                   />
                 </div>
               </div>

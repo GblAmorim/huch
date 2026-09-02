@@ -19,7 +19,7 @@ const ProductPricingPage = () => {
         model: "Bambu Lab A1 Combo",
         value: 700000,
         lifeCycleHr: 24000,
-        energyConsumptionKw: 0.3 * 0.67, // Depois armazenar a % para cálculo
+        energyConsumptionKw: 0.3, // Depois armazenar a % para cálculo
         filamentWastePercentage: 2, // Exemplo de desperdício de filamento em %
       },
       energy: {
@@ -54,8 +54,17 @@ const ProductPricingPage = () => {
             remainingInStockG: 100,
             note: "Filamento PLA Premium Azul da Sunlu",
           },
+          {
+            id: "4",
+            brand: "3D Prime",
+            type: "PLA Basic",
+            color: "Branco",
+            pricePerKg: 8100,
+            remainingInStockG: 500,
+            note: "Filamento PLA básico da 3D Prime",
+          },
         ],
-        wastePercentage: 5,
+        wastePercentage: 2,
       },
       addons: [
         {

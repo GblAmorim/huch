@@ -24,6 +24,22 @@ export function PrintingDataForm({
   const [piecesQuantity, setPiecesQuantity] = useState("1");
   const [failureChance, setFailureChance] = useState("");
 
+  function updatePrintTime(hours: string, minutes: string) {
+    const hoursValue = Number(hours) || 0;
+    const minutesValue = Number(minutes) || 0;
+
+    dispatch({
+      type: "UPDATE_PRINTING_DATA",
+      payload: {
+        field: {
+          printTimeHours: hoursValue,
+          printTimeMinutes: minutesValue,
+          totalPrintTimeMinutes: hoursValue * 60 + minutesValue,
+        },
+      },
+    });
+  }
+
   return (
     <div>
       <div className="space-y-1.5">
@@ -46,7 +62,10 @@ export function PrintingDataForm({
                 type="number"
                 placeholder="HHHH"
                 value={printTimeHours}
-                onChange={(e) => setPrintTimeHours(e.target.value)}
+                onChange={(e) => {
+                  setPrintTimeHours(e.target.value);
+                  updatePrintTime(e.target.value, printTimeMinutes);
+                }}
               />
             </div>
             <span className="text-sm font-semibold">:</span>
@@ -58,7 +77,10 @@ export function PrintingDataForm({
                 max={59}
                 placeholder="MM"
                 value={printTimeMinutes}
-                onChange={(e) => setPrintTimeMinutes(e.target.value)}
+                onChange={(e) => {
+                  setPrintTimeMinutes(e.target.value);
+                  updatePrintTime(printTimeHours, e.target.value);
+                }}
               />
             </div>
           </div>
@@ -99,7 +121,20 @@ export function PrintingDataForm({
               max={100}
               placeholder="10"
               value={failureChance}
-              onChange={(e) => setFailureChance(e.target.value)}
+              onChange={(e) => {
+                setFailureChance(e.target.value);
+                dispatch({
+                  type: "UPDATE_PRINTING_DATA",
+                  payload: {
+                    field: {
+                      failureChancePercentage:
+                        e.target.value === ""
+                          ? baselineData.taxes.standardFailureChance
+                          : Number(e.target.value),
+                    },
+                  },
+                });
+              }}
             />
           </div>
         </div>

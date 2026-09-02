@@ -5,6 +5,24 @@ export function productPricingReducer(
   action: ProductPricingAction,
 ): ProductPricingState {
   switch (action.type) {
+    case "UPDATE_PRINTING_DATA":
+      return {
+        ...state,
+        printingData: {
+          ...state.printingData,
+          ...action.payload.field,
+        },
+      };
+
+    case "UPDATE_PRODUCT_LABOR":
+      return {
+        ...state,
+        productLabor: {
+          ...state.productLabor,
+          ...action.payload.field,
+        },
+      };
+
     case "ADD_FILAMENT":
       return {
         ...state,
@@ -50,6 +68,7 @@ export function productPricingReducer(
           ...state.usedAddons,
           {
             id: crypto.randomUUID(),
+            type: "accessory",
             addonId: "",
             quantity: 0,
           },

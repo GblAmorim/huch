@@ -125,15 +125,20 @@ type PricingResult = {
   fixedCosts: number;
   laborCosts: {
     modelingLaborCost: number;
-    postPrintingLaborCost: number;
+    postPrintingLaborOnePieceCost: number;
+    totalPostPrintingLaborCost: number;
   };
   addonsCosts: {
     totalAddonsCost: number;
     oneByOne: {
+      name: string;
       cost: number;
       type: "accessory" | "packing";
     }[];
   };
+  packingAddonsCost: number;
+  piecesQuantity: number;
+  transportCost: number;
   logisticCosts: number;
   totalProductionCost: number;
   totalProductionCostWithLogisticsAndPacking: number;
@@ -153,18 +158,26 @@ type PricingDetails = {
 };
 
 type ProductPricingAction =
+  | {
+    type: "UPDATE_PRINTING_DATA";
+    payload: { field: Partial<PrintingData> };
+  }
+  | {
+    type: "UPDATE_PRODUCT_LABOR";
+    payload: { field: Partial<ProductLabor> };
+  }
   | { type: "ADD_FILAMENT" }
   | { type: "REMOVE_FILAMENT"; payload: { id: string } }
   | {
-      type: "UPDATE_FILAMENT";
-      payload: { id: string; field: Partial<UsedFilament> };
-    }
+    type: "UPDATE_FILAMENT";
+    payload: { id: string; field: Partial<UsedFilament> };
+  }
   | { type: "ADD_ADDON" }
   | { type: "REMOVE_ADDON"; payload: { id: string } }
   | {
-      type: "UPDATE_ADDON";
-      payload: { id: string; field: Partial<UsedAddon> };
-    }
+    type: "UPDATE_ADDON";
+    payload: { id: string; field: Partial<UsedAddon> };
+  }
   | { type: "CALCULATE_START" }
   | { type: "CALCULATE_SUCCESS"; payload: PricingResult }
   | { type: "CALCULATE_ERROR"; payload: string }

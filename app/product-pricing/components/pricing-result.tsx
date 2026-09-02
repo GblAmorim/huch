@@ -1,4 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 type Props = {
   result: PricingResult;
@@ -22,10 +30,12 @@ function Row({
 }) {
   return (
     <div
-      className={`flex justify-between py-1 text-sm ${bold ? "font-semibold" : ""}`}
+      className={`flex min-w-0 flex-wrap items-start justify-between gap-x-4 gap-y-1 py-1 text-sm ${bold ? "font-semibold" : ""}`}
     >
-      <span className="text-muted-foreground">{label}</span>
-      <span>{value}</span>
+      <span className="min-w-0 flex-1 whitespace-normal wrap-break-word text-muted-foreground">
+        {label}
+      </span>
+      <span className="shrink-0 text-right">{value}</span>
     </div>
   );
 }
@@ -40,7 +50,15 @@ export function PricingResult({ result }: Props) {
     printingCosts.failureCost;
 
   const laborTotal =
-    laborCosts.modelingLaborCost + laborCosts.postPrintingLaborCost;
+    laborCosts.modelingLaborCost + laborCosts.totalPostPrintingLaborCost;
+
+  const accessoryTotal = addonsCosts.oneByOne
+    .filter((addon) => addon.type === "accessory")
+    .reduce((total, addon) => total + addon.cost, 0);
+
+  const packingTotal = addonsCosts.oneByOne
+    .filter((addon) => addon.type === "packing")
+    .reduce((total, addon) => total + addon.cost, 0);
 
   return (
     <div className="space-y-4">
@@ -92,21 +110,44 @@ export function PricingResult({ result }: Props) {
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
               Filamentos
             </p>
-            {filamentCosts.oneByOne.map((filament, index) => (
-              <Row
-                key={index}
-                label={`Filamento ${index + 1} (${filament.usedAmountG}g, ${fmt(filament.pricePerKg)}/Kg)`}
-                value={fmt(filament.filamentWithWasteCost)}
-              />
-            ))}
-            <Row
-              label={`Material (${filamentCosts.totalFilamentG.toFixed(1)}g)`}
-              value={fmt(filamentCosts.totalFilamentCost)}
-            />
-            <Row
-              label={`Desperdício (${filamentCosts.totalFilamentWasteG.toFixed(1)}g)`}
-              value={fmt(filamentCosts.totalFilamentWasteCost)}
-            />
+            <Accordion type="single" collapsible>
+              <AccordionItem value="filament-details" className="border-none">
+                <AccordionTrigger
+                  className={cn(
+                    buttonVariants({ variant: "outline", size: "sm" }),
+                    "w-auto font-medium no-underline hover:no-underline"
+                  )}
+                >
+                  Ver detalhes
+                </AccordionTrigger>
+                <AccordionContent>
+                  {filamentCosts.oneByOne.map((filament, index) => (
+                    <div key={index}>
+                      <Row
+                        label={`Filamento ${index + 1} (${filament.usedAmountG}g, ${fmt(filament.pricePerKg)}/Kg)`}
+                        value={fmt(filament.cost)}
+                      />
+                      <Row
+                        label={`Desperdício ${index + 1} (${filament.wasteG}g)`}
+                        value={fmt(filament.wasteCost)}
+                      />
+                      <Row
+                        label={`Total ${index + 1} (${filament.filamentWithWasteG}g)`}
+                        value={fmt(filament.filamentWithWasteCost)}
+                      />
+                    </div>
+                  ))}
+                  <Row
+                    label={`Material (${filamentCosts.totalFilamentG.toFixed(2)}g)`}
+                    value={fmt(filamentCosts.totalFilamentCost)}
+                  />
+                  <Row
+                    label={`Desperdício (${filamentCosts.totalFilamentWasteG.toFixed(2)}g)`}
+                    value={fmt(filamentCosts.totalFilamentWasteCost)}
+                  />
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
             <Row
               label={`Total c/ desperdício (${filamentCosts.totalFilamentWithWasteG.toFixed(1)}g)`}
               value={fmt(filamentCosts.totalFilamentWithWasteCost)}
@@ -136,12 +177,16 @@ export function PricingResult({ result }: Props) {
               Mão de Obra
             </p>
             <Row
-              label="Modelagem 3D"
+              label="Modelagem/Customização"
               value={fmt(laborCosts.modelingLaborCost)}
             />
             <Row
-              label="Pós-processamento"
-              value={fmt(laborCosts.postPrintingLaborCost)}
+              label="Trabalho Pós-impressão por Peça"
+              value={fmt(laborCosts.postPrintingLaborOnePieceCost)}
+            />
+            <Row
+              label="Trabalho Pós-impressão Total"
+              value={fmt(laborCosts.totalPostPrintingLaborCost)}
             />
             <Row label="Subtotal mão de obra" value={fmt(laborTotal)} bold />
           </div>
@@ -152,6 +197,30 @@ export function PricingResult({ result }: Props) {
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
               Acessórios e Embalagens
             </p>
+            <Accordion type="single" collapsible>
+              <AccordionItem value="addons-details" className="border-none">
+                <AccordionTrigger
+                  className={cn(
+                    buttonVariants({ variant: "outline", size: "sm" }),
+                    "w-auto font-medium no-underline hover:no-underline",
+                  )}
+                >
+                  Ver detalhes
+                </AccordionTrigger>
+                <AccordionContent>
+                  {addonsCosts.oneByOne.map((addon, index) => (
+                    <Row
+                      key={index}
+                      label={`${addon.type === "accessory" ? "Acessório" : "Embalagem"
+                        }: ${addon.name}`}
+                      value={fmt(addon.cost)}
+                    />
+                  ))}
+                  <Row label="Total de acessórios" value={fmt(accessoryTotal)} />
+                  <Row label="Total de embalagens" value={fmt(packingTotal)} />
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
             <Row
               label="Total acessórios / embalagens"
               value={fmt(addonsCosts.totalAddonsCost)}
@@ -160,19 +229,40 @@ export function PricingResult({ result }: Props) {
           </div>
 
           <div className="border-t" />
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+            Custo Logístico
+          </p>
 
           <div>
             <Row
-              label="Custo logístico"
-              value={fmt(result.logisticCosts)}
+              label="Total de embalagens"
+              value={fmt(result.packingAddonsCost)}
             />
             <Row
-              label="Custo total de produção"
+              label="Transporte (todas as peças)"
+              value={fmt(result.transportCost)}
+            />
+            <Row
+              label="Transporte (por peça)"
+              value={fmt(result.transportCost / result.piecesQuantity)}
+            />
+            <Row
+              label="Total logística e embalagens"
+              value={fmt(result.logisticCosts)}
+              bold
+            />
+          </div>
+
+          <div className="border-t" />
+
+          <div>
+            <Row
+              label="Custo Total de Produção"
               value={fmt(result.totalProductionCost)}
               bold
             />
             <Row
-              label="Custo total c/ logística e embalagem"
+              label="Custo Total Produção e Envio"
               value={fmt(result.totalProductionCostWithLogisticsAndPacking)}
               bold
             />
@@ -187,6 +277,6 @@ export function PricingResult({ result }: Props) {
           />
         </CardContent>
       </Card>
-    </div>
+    </div >
   );
 }

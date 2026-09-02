@@ -1,6 +1,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { UsedAddonItem } from "./used-addon-item";
+import { toast } from "sonner";
 
 interface Props {
   registeredAddons: PricingBaseline["addons"];
@@ -21,12 +22,36 @@ export const UsedAddonsList = React.memo(function UsedAddonsList({
           addon={addon}
           index={index}
           registeredAddons={registeredAddons}
-          onUpdate={(field) =>
+          onUpdate={(field) => {
+            if (
+              field.addonId &&
+              usedAddons.some(
+                (item) =>
+                  item.id !== addon.id && item.addonId === field.addonId,
+              )
+            ) {
+              toast.error("Este acessório já foi adicionado.");
+              dispatch({
+                type: "UPDATE_ADDON",
+                payload: { id: addon.id, field: { addonId: "" } },
+              });
+              return;
+            }
+
+            const selectedAddon = field.addonId
+              ? registeredAddons.find((item) => item.id === field.addonId)
+              : undefined;
+
             dispatch({
               type: "UPDATE_ADDON",
-              payload: { id: addon.id, field },
-            })
-          }
+              payload: {
+                id: addon.id,
+                field: selectedAddon
+                  ? { ...field, type: selectedAddon.type }
+                  : field,
+              },
+            });
+          }}
           onRemove={() =>
             dispatch({
               type: "REMOVE_ADDON",

@@ -1,6 +1,7 @@
 import React from "react";
 import { UsedFilamentItem } from "./used-filament-item";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 type Props = {
   usedFilaments: UsedFilament[];
@@ -23,12 +24,28 @@ export const UsedFilamentList = React.memo(function UsedFilamentList({
           filament={filament}
           index={index}
           registeredFilaments={registeredFilaments}
-          onUpdate={(field) =>
+          onUpdate={(field) => {
+            if (
+              field.filamentId &&
+              usedFilaments.some(
+                (item) =>
+                  item.id !== filament.id &&
+                  item.filamentId === field.filamentId,
+              )
+            ) {
+              toast.error("Este filamento já foi adicionado.");
+              dispatch({
+                type: "UPDATE_FILAMENT",
+                payload: { id: filament.id, field: { filamentId: "" } },
+              });
+              return;
+            }
+
             dispatch({
               type: "UPDATE_FILAMENT",
               payload: { id: filament.id, field },
-            })
-          }
+            });
+          }}
           onRemove={() =>
             dispatch({
               type: "REMOVE_FILAMENT",

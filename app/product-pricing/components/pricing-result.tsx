@@ -92,6 +92,13 @@ export function PricingResult({ result }: Props) {
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
               Filamentos
             </p>
+            {filamentCosts.oneByOne.map((filament, index) => (
+              <Row
+                key={index}
+                label={`Filamento ${index + 1} (${filament.usedAmountG}g, ${fmt(filament.pricePerKg)}/Kg)`}
+                value={fmt(filament.filamentWithWasteCost)}
+              />
+            ))}
             <Row
               label={`Material (${filamentCosts.totalFilamentG.toFixed(1)}g)`}
               value={fmt(filamentCosts.totalFilamentCost)}

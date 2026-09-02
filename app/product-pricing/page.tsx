@@ -13,9 +13,7 @@ const ProductPricingPage = () => {
   const { state, dispatch, canCalculate } = useProductPricing();
   const {
     pricingBaselineData,
-    loading,
-    error,
-  }: { pricingBaselineData: PricingBaseline; loading: boolean; error: any } = {
+  }: { pricingBaselineData: PricingBaseline } = {
     pricingBaselineData: {
       printer: {
         model: "Bambu Lab A1 Combo",
@@ -103,8 +101,6 @@ const ProductPricingPage = () => {
         platformFee: 400,
       },
     },
-    loading: false,
-    error: null,
   };
 
   async function handlePrice(e: React.FormEvent) {
@@ -162,9 +158,16 @@ const ProductPricingPage = () => {
           </CardContent>
         </Card>
         <div className="space-y-1.5"></div>
-        <Button type="submit" disabled={loading} className="w-full">
-          {loading ? "Calculando..." : "Calcular Preço"}
+        <Button
+          type="submit"
+          disabled={!canCalculate || state.status === "calculating"}
+          className="w-full"
+        >
+          {state.status === "calculating" ? "Calculando..." : "Calcular Preço"}
         </Button>
+        {state.status === "error" && state.error && (
+          <p className="text-sm text-destructive">{state.error}</p>
+        )}
       </form>
       <PricingResults pricingResults={state.result} />
     </div>

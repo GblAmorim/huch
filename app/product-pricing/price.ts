@@ -17,7 +17,7 @@ export function price(
       (usedFilament.usedAmountG / 1000) * isRegistered.pricePerKg;
     const wasteG =
       usedFilament.usedAmountG * (baseline.filaments.wastePercentage / 100);
-    const wasteCost = wasteG * isRegistered.pricePerKg;
+    const wasteCost = (wasteG / 1000) * isRegistered.pricePerKg;
     const usedFilamentWithWasteCost = usedFilamentCost + wasteCost;
     const usedFilamentWithWasteG = usedFilament.usedAmountG + wasteG;
     return [

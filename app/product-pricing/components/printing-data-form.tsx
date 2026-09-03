@@ -41,8 +41,8 @@ export function PrintingDataForm({
   }
 
   return (
-    <div>
-      <div className="space-y-1.5">
+    <div className="space-y-6">
+      <div className="space-y-3">
         <Label htmlFor="productName">Nome da Peça</Label>
         <Input
           id="productName"
@@ -51,8 +51,8 @@ export function PrintingDataForm({
           onChange={(e) => setProductName(e.target.value)}
         />
       </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-1.5">
+      <div className="grid grid-cols-2 gap-6">
+        <div className="space-y-3">
           <Label htmlFor="printTimeHours">Tempo de Impressão</Label>
           <div className="flex items-center gap-1">
             <div>
@@ -85,7 +85,7 @@ export function PrintingDataForm({
             </div>
           </div>
         </div>
-        <div className="space-y-1.5">
+        <div className="space-y-3">
           <Label htmlFor="desiredProfit">Lucro Desejado (R$)</Label>
           <div>
             <Input
@@ -99,8 +99,8 @@ export function PrintingDataForm({
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-1.5">
+      <div className="grid grid-cols-2 gap-6">
+        <div className="space-y-3">
           <Label htmlFor="piecesQuantity">Quantidade de Peças</Label>
           <Input
             id="piecesQuantity"
@@ -111,7 +111,7 @@ export function PrintingDataForm({
             onChange={(e) => setPiecesQuantity(e.target.value)}
           />
         </div>
-        <div className="space-y-1.5">
+        <div className="space-y-3">
           <Label htmlFor="failureChance">Chance de Falha (%)</Label>
           <div>
             <Input

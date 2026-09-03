@@ -63,6 +63,7 @@ export const UsedAddonsList = React.memo(function UsedAddonsList({
       ))}
 
       <Button
+        type="button"
         size="sm"
         variant="outline"
         onClick={() => {

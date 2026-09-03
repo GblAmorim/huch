@@ -57,6 +57,7 @@ export const UsedFilamentList = React.memo(function UsedFilamentList({
       ))}
 
       <Button
+        type="button"
         size="sm"
         variant="outline"
         onClick={() => {

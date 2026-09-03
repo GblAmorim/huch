@@ -1,6 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { PrintingDataForm } from "./components/printing-data-form";
 import { LaborDataForm } from "./components/product-labor-form";
 import { Button } from "@/components/ui/button";
@@ -8,19 +15,29 @@ import { useProductPricing } from "@/lib/hooks/useProductPricing";
 import { price } from "./price";
 import { UsedAddonsList } from "./components/used-addons-list";
 import { PricingResults } from "./components/pricing-results";
+import { Info } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverDescription,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { formatMoney } from "@/lib/utils";
 
 const ProductPricingPage = () => {
   const { state, dispatch, canCalculate } = useProductPricing();
-  const {
-    pricingBaselineData,
-  }: { pricingBaselineData: PricingBaseline } = {
+  const [isFormOpen, setIsFormOpen] = useState(true);
+  const { pricingBaselineData }: { pricingBaselineData: PricingBaseline } = {
     pricingBaselineData: {
       printer: {
         model: "Bambu Lab A1 Combo",
         value: 700000,
         lifeCycleHr: 24000,
         energyConsumptionKw: 0.3, // Depois armazenar a % para cálculo
-        filamentWastePercentage: 2, // Exemplo de desperdício de filamento em %
+        filamentWastePercentage: 2,
+        defaultFailureChancePercentage: 15,
       },
       energy: {
         valueKwH: 84,
@@ -64,12 +81,11 @@ const ProductPricingPage = () => {
             note: "Filamento PLA básico da 3D Prime",
           },
         ],
-        wastePercentage: 2,
       },
       addons: [
         {
           id: "1",
-          name: "Argolas de chaveiro",
+          name: "Argolas de Chaveiro",
           unitPrice: 21,
           type: "accessory",
           purchasePrice: 2100,
@@ -89,6 +105,17 @@ const ProductPricingPage = () => {
           stockQuantity: 100,
           note: "Caixa de papelão para embalagem",
         },
+        {
+          id: "3",
+          name: "Fita Adesiva",
+          unitPrice: 10,
+          type: "packing",
+          purchasePrice: 4637,
+          packageQuantity: 100,
+          purchaseUrl: "https://example.com/fita-adesiva",
+          stockQuantity: 100,
+          note: "Fita adesiva para embalagem",
+        },
       ],
       labor: {
         modelingLaborCostPerHour: 3000,
@@ -97,16 +124,15 @@ const ProductPricingPage = () => {
       logistics: {
         gasPricePerLitter: 600,
         kmPerLitter: 12,
-        distanceKm: 10,
+        distanceKm: 5,
       },
       taxes: {
-        standardFailureChance: 15,
-        commissionFeePercentage: 20,
-        creditCartFeePercentage: 5,
-        governmentTax: 8,
-        profitType: "number",
-        standardProfit: 1000,
         riskReservePercentage: 2,
+        governmentTaxPercentage: 8,
+        creditCartFeePercentage: 5,
+        commissionFeePercentage: 20,
+        profitType: "number",
+        defaultDesiredProfit: null,
         platformFee: 400,
       },
     },
@@ -119,7 +145,9 @@ const ProductPricingPage = () => {
     try {
       const result = price(state, pricingBaselineData);
       dispatch({ type: "CALCULATE_SUCCESS", payload: result });
+      setIsFormOpen(false);
     } catch (error) {
+      setIsFormOpen(true);
       dispatch({
         type: "CALCULATE_ERROR",
         payload: error instanceof Error ? error.message : String(error),
@@ -128,55 +156,110 @@ const ProductPricingPage = () => {
   }
 
   return (
-    <div className="space-y-6 p-6">
-      <form onSubmit={handlePrice} className="space-y-4">
-        <h1>Precificação de Produto</h1>
-        <Card>
-          <CardHeader>
-            <CardTitle>Dados da Impressão</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <PrintingDataForm
-              baselineData={pricingBaselineData}
-              dispatch={dispatch}
-              usedFilaments={state.printingData.usedFilaments}
-            />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Tempo de Mão de Obra</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <LaborDataForm
-              dispatch={dispatch}
-              baselineData={pricingBaselineData.labor}
-            />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Embalagens e Acessórios</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <UsedAddonsList
-              registeredAddons={pricingBaselineData.addons}
-              dispatch={dispatch}
-              usedAddons={state.usedAddons}
-            />
-          </CardContent>
-        </Card>
-        <div className="space-y-1.5"></div>
-        <Button
-          type="submit"
-          disabled={!canCalculate || state.status === "calculating"}
-          className="w-full"
+    <div className="p-6">
+      <form onSubmit={handlePrice}>
+        <Accordion
+          type="single"
+          collapsible
+          disabled={state.status === "idle"}
+          value={isFormOpen ? "pricing-form" : ""}
+          onValueChange={(value) => setIsFormOpen(value === "pricing-form")}
         >
-          {state.status === "calculating" ? "Calculando..." : "Calcular Preço"}
-        </Button>
-        {state.status === "error" && state.error && (
-          <p className="text-sm text-destructive">{state.error}</p>
-        )}
+          <AccordionItem value="pricing-form" className="border-none">
+            <Card>
+              <CardHeader>
+                <AccordionTrigger className="p-0 hover:no-underline">
+                  <CardTitle>Precificação</CardTitle>
+                </AccordionTrigger>
+              </CardHeader>
+
+              <AccordionContent>
+                <CardContent>
+                  <div className="space-y-4">
+                    <h2>Dados da Impressão</h2>
+                    <PrintingDataForm
+                      baselineData={pricingBaselineData}
+                      dispatch={dispatch}
+                      usedFilaments={state.printingData.usedFilaments}
+                    />
+                    <Card>
+                      <CardHeader className="relative">
+                        <CardTitle>Tempo de Mão de Obra</CardTitle>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon-sm"
+                              className="absolute -top-2 right-2"
+                            >
+                              <Info className="h-4 w-4" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent align="end" className="w-64 p-4">
+                            <PopoverHeader>
+                              <PopoverTitle>Custos:</PopoverTitle>
+                              <PopoverDescription>
+                                <p>
+                                  Modelagem:{" "}
+                                  {formatMoney(
+                                    pricingBaselineData.labor
+                                      .modelingLaborCostPerHour,
+                                  )}{" "}
+                                  R$/h
+                                </p>
+                                <p>
+                                  Montagem:{" "}
+                                  {formatMoney(
+                                    pricingBaselineData.labor
+                                      .postPrintingLaborCostPerHour,
+                                  )}{" "}
+                                  R$/h
+                                </p>
+                              </PopoverDescription>
+                            </PopoverHeader>
+                          </PopoverContent>
+                        </Popover>
+                      </CardHeader>
+                      <CardContent>
+                        <LaborDataForm
+                          dispatch={dispatch}
+                          baselineData={pricingBaselineData.labor}
+                        />
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Embalagens e Acessórios</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <UsedAddonsList
+                          registeredAddons={pricingBaselineData.addons}
+                          dispatch={dispatch}
+                          usedAddons={state.usedAddons}
+                        />
+                      </CardContent>
+                    </Card>
+                  </div>
+                </CardContent>
+                <div className="mt-4 flex justify-center">
+                  <Button
+                    type="submit"
+                    disabled={!canCalculate || state.status === "calculating"}
+                    className="w-3/4"
+                  >
+                    {state.status === "calculating"
+                      ? "Calculando..."
+                      : "Calcular Preço"}
+                  </Button>
+                </div>
+              </AccordionContent>
+              {state.status === "error" && state.error && (
+                <p className="text-sm text-destructive">{state.error}</p>
+              )}
+            </Card>
+          </AccordionItem>
+        </Accordion>
       </form>
       <PricingResults pricingResults={state.result} />
     </div>

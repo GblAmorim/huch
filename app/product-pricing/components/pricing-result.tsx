@@ -5,19 +5,12 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { formatMoney } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 type Props = {
   result: PricingResult;
 };
-
-function fmt(centavos: number): string {
-  return (centavos / 100).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-}
 
 function Row({
   label,
@@ -50,7 +43,7 @@ export function PricingResult({ result }: Props) {
     printingCosts.failureCost;
 
   const laborTotal =
-    laborCosts.modelingLaborCost + laborCosts.totalPostPrintingLaborCost;
+    laborCosts.modelingLaborCost + laborCosts.postPrintingLaborCost;
 
   const accessoryTotal = addonsCosts.oneByOne
     .filter((addon) => addon.type === "accessory")
@@ -61,8 +54,8 @@ export function PricingResult({ result }: Props) {
     .reduce((total, addon) => total + addon.cost, 0);
 
   return (
-    <div className="space-y-4">
-      {/* Preços de venda */}
+    <div className="space-y-4 mt-4">
+      <h2 className="text-lg font-semibold">Preços de venda</h2>
       <div className="grid grid-cols-3 gap-3">
         <Card className="border-primary">
           <CardHeader className="pb-1">
@@ -71,20 +64,20 @@ export function PricingResult({ result }: Props) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-primary">
-              {fmt(finalPrices.finalPlatformPrice)}
+            <p className="text-xl font-bold text-primary">
+              {formatMoney(finalPrices.finalPlatformPrice)}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-1">
             <CardTitle className="text-sm text-muted-foreground">
-              Cartão de Crédito
+              Cart. Crédito
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">
-              {fmt(finalPrices.finalPriceCreditCard)}
+            <p className="text-xl font-bold">
+              {formatMoney(finalPrices.finalPriceCreditCard)}
             </p>
           </CardContent>
         </Card>
@@ -93,14 +86,12 @@ export function PricingResult({ result }: Props) {
             <CardTitle className="text-sm text-muted-foreground">Pix</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">
-              {fmt(finalPrices.finalPricePix)}
+            <p className="text-xl font-bold">
+              {formatMoney(finalPrices.finalPricePix)}
             </p>
           </CardContent>
         </Card>
       </div>
-
-      {/* Detalhamento de custos */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Detalhamento dos Custos</CardTitle>
@@ -110,49 +101,43 @@ export function PricingResult({ result }: Props) {
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
               Filamentos
             </p>
+            <Row
+              label={`Subtotal (${filamentCosts.totalFilamentWithWasteG.toFixed(1)}g)`}
+              value={formatMoney(filamentCosts.totalFilamentWithWasteCost)}
+              bold
+            />
             <Accordion type="single" collapsible>
-              <AccordionItem value="filament-details" className="border-none">
-                <AccordionTrigger
-                  className={cn(
-                    buttonVariants({ variant: "outline", size: "sm" }),
-                    "w-auto font-medium no-underline hover:no-underline"
-                  )}
-                >
-                  Ver detalhes
-                </AccordionTrigger>
+              <AccordionItem value="filament-details">
+                <AccordionTrigger>Detalhes</AccordionTrigger>
                 <AccordionContent>
                   {filamentCosts.oneByOne.map((filament, index) => (
                     <div key={index}>
                       <Row
-                        label={`Filamento ${index + 1} (${filament.usedAmountG}g, ${fmt(filament.pricePerKg)}/Kg)`}
-                        value={fmt(filament.cost)}
+                        label={`Filamento ${index + 1} (${filament.usedAmountG}g, ${formatMoney(filament.pricePerKg)}/Kg)`}
+                        value={formatMoney(filament.cost)}
                       />
                       <Row
                         label={`Desperdício ${index + 1} (${filament.wasteG}g)`}
-                        value={fmt(filament.wasteCost)}
+                        value={formatMoney(filament.wasteCost)}
                       />
                       <Row
                         label={`Total ${index + 1} (${filament.filamentWithWasteG}g)`}
-                        value={fmt(filament.filamentWithWasteCost)}
+                        value={formatMoney(filament.filamentWithWasteCost)}
                       />
+                      <div className="border-t" />
                     </div>
                   ))}
                   <Row
                     label={`Material (${filamentCosts.totalFilamentG.toFixed(2)}g)`}
-                    value={fmt(filamentCosts.totalFilamentCost)}
+                    value={formatMoney(filamentCosts.totalFilamentCost)}
                   />
                   <Row
                     label={`Desperdício (${filamentCosts.totalFilamentWasteG.toFixed(2)}g)`}
-                    value={fmt(filamentCosts.totalFilamentWasteCost)}
+                    value={formatMoney(filamentCosts.totalFilamentWasteCost)}
                   />
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
-            <Row
-              label={`Total c/ desperdício (${filamentCosts.totalFilamentWithWasteG.toFixed(1)}g)`}
-              value={fmt(filamentCosts.totalFilamentWithWasteCost)}
-              bold
-            />
           </div>
 
           <div className="border-t" />
@@ -163,11 +148,17 @@ export function PricingResult({ result }: Props) {
             </p>
             <Row
               label="Depreciação da impressora"
-              value={fmt(printingCosts.depreciationCost)}
+              value={formatMoney(printingCosts.depreciationCost)}
             />
-            <Row label="Energia elétrica" value={fmt(printingCosts.energyCost)} />
-            <Row label="Risco de falhas" value={fmt(printingCosts.failureCost)} />
-            <Row label="Subtotal impressão" value={fmt(printingTotal)} bold />
+            <Row
+              label="Energia elétrica"
+              value={formatMoney(printingCosts.energyCost)}
+            />
+            <Row
+              label="Risco de falhas"
+              value={formatMoney(printingCosts.failureCost)}
+            />
+            <Row label="Subtotal" value={formatMoney(printingTotal)} bold />
           </div>
 
           <div className="border-t" />
@@ -178,54 +169,31 @@ export function PricingResult({ result }: Props) {
             </p>
             <Row
               label="Modelagem/Customização"
-              value={fmt(laborCosts.modelingLaborCost)}
+              value={formatMoney(laborCosts.modelingLaborCost)}
             />
             <Row
-              label="Trabalho Pós-impressão por Peça"
-              value={fmt(laborCosts.postPrintingLaborOnePieceCost)}
+              label="Trabalho Pós-impressão"
+              value={formatMoney(laborCosts.postPrintingLaborCost)}
             />
-            <Row
-              label="Trabalho Pós-impressão Total"
-              value={fmt(laborCosts.totalPostPrintingLaborCost)}
-            />
-            <Row label="Subtotal mão de obra" value={fmt(laborTotal)} bold />
+            <Row label="Subtotal" value={formatMoney(laborTotal)} bold />
           </div>
 
           <div className="border-t" />
 
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
-              Acessórios e Embalagens
+              Acessórios e Peças Adicionais
             </p>
-            <Accordion type="single" collapsible>
-              <AccordionItem value="addons-details" className="border-none">
-                <AccordionTrigger
-                  className={cn(
-                    buttonVariants({ variant: "outline", size: "sm" }),
-                    "w-auto font-medium no-underline hover:no-underline",
-                  )}
-                >
-                  Ver detalhes
-                </AccordionTrigger>
-                <AccordionContent>
-                  {addonsCosts.oneByOne.map((addon, index) => (
-                    <Row
-                      key={index}
-                      label={`${addon.type === "accessory" ? "Acessório" : "Embalagem"
-                        }: ${addon.name}`}
-                      value={fmt(addon.cost)}
-                    />
-                  ))}
-                  <Row label="Total de acessórios" value={fmt(accessoryTotal)} />
-                  <Row label="Total de embalagens" value={fmt(packingTotal)} />
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-            <Row
-              label="Total acessórios / embalagens"
-              value={fmt(addonsCosts.totalAddonsCost)}
-              bold
-            />
+            {addonsCosts.oneByOne
+              .filter((addon) => addon.type === "accessory")
+              .map((addon, index) => (
+                <Row
+                  key={`${addon.name}-${index}`}
+                  label={`${index + 1}. ${addon.name} (${formatMoney(addon.unitPrice)})`}
+                  value={formatMoney(addon.cost)}
+                />
+              ))}
+            <Row label="Subtotal" value={formatMoney(accessoryTotal)} bold />
           </div>
 
           <div className="border-t" />
@@ -235,22 +203,35 @@ export function PricingResult({ result }: Props) {
 
           <div>
             <Row
-              label="Total de embalagens"
-              value={fmt(result.packingAddonsCost)}
-            />
-            <Row
-              label="Transporte (todas as peças)"
-              value={fmt(result.transportCost)}
-            />
-            <Row
-              label="Transporte (por peça)"
-              value={fmt(result.transportCost / result.piecesQuantity)}
-            />
-            <Row
-              label="Total logística e embalagens"
-              value={fmt(result.logisticCosts)}
+              label="Total embalagens"
+              value={formatMoney(packingTotal)}
               bold
             />
+            <Row
+              label={`Transporte (Por peça ~${formatMoney(result.transportCost / result.piecesQuantity)})`}
+              value={formatMoney(result.transportCost)}
+            />
+            <Row
+              label="Subtotal"
+              value={formatMoney(result.logisticCosts)}
+              bold
+            />
+            <Accordion type="single" collapsible>
+              <AccordionItem value="packing-details">
+                <AccordionTrigger>Detalhes</AccordionTrigger>
+                <AccordionContent>
+                  {addonsCosts.oneByOne
+                    .filter((addon) => addon.type === "packing")
+                    .map((addon, index) => (
+                      <Row
+                        key={`${addon.name}-${index}`}
+                        label={`${index + 1}. ${addon.name} (${formatMoney(addon.unitPrice)})`}
+                        value={formatMoney(addon.cost)}
+                      />
+                    ))}
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
 
           <div className="border-t" />
@@ -258,12 +239,14 @@ export function PricingResult({ result }: Props) {
           <div>
             <Row
               label="Custo Total de Produção"
-              value={fmt(result.totalProductionCost)}
+              value={formatMoney(result.totalProductionCost)}
               bold
             />
             <Row
               label="Custo Total Produção e Envio"
-              value={fmt(result.totalProductionCostWithLogisticsAndPacking)}
+              value={formatMoney(
+                result.totalProductionCostWithLogisticsAndPacking,
+              )}
               bold
             />
           </div>
@@ -277,6 +260,6 @@ export function PricingResult({ result }: Props) {
           />
         </CardContent>
       </Card>
-    </div >
+    </div>
   );
 }

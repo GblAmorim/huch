@@ -10,6 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { formatMoney } from "@/lib/utils";
+import { Trash2 } from "lucide-react";
 import React from "react";
 
 type Props = {
@@ -36,9 +38,9 @@ export const UsedFilamentItem = React.memo(function UsedFilamentItem({
   const filamentBrands = [...new Set(registeredFilaments.map((f) => f.brand))];
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-3 pb-2">
       <div className="flex gap-4">
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <Label htmlFor="filamentForPrint">Filamento {index + 1}</Label>
           <Select
             value={filament.filamentId}
@@ -62,7 +64,7 @@ export const UsedFilamentItem = React.memo(function UsedFilamentItem({
                     .map((filament) => (
                       <SelectItem key={filament.id} value={filament.id}>
                         {filament.type} - {filament.color} -{" "}
-                        {filament.pricePerKg} R$/Kg
+                        {formatMoney(filament.pricePerKg)} R$/Kg
                       </SelectItem>
                     ))}
                 </SelectGroup>
@@ -70,7 +72,7 @@ export const UsedFilamentItem = React.memo(function UsedFilamentItem({
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-1.5">
+        <div className="space-y-2 flex flex-col">
           <Label htmlFor="filamentToPrintG">Quantidade (g)</Label>
           <Input
             id="filamentToPrintG"
@@ -82,13 +84,19 @@ export const UsedFilamentItem = React.memo(function UsedFilamentItem({
               onUpdate({ usedAmountG: parseFloat(e.target.value) || 0 })
             }
           />
+          {canRemove && (
+            <Button
+              className="self-end"
+              type="button"
+              size="icon-sm"
+              variant="destructive"
+              onClick={onRemove}
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          )}
         </div>
       </div>
-      {canRemove && (
-        <Button size="xs" variant="destructive" onClick={onRemove}>
-          Remover
-        </Button>
-      )}
     </div>
   );
 });

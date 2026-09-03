@@ -3,22 +3,6 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Button } from "@/components/ui/button";
-import { Info } from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverDescription,
-  PopoverHeader,
-  PopoverTitle,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 
 type Props = {
   dispatch: React.Dispatch<ProductPricingAction>;
@@ -55,7 +39,7 @@ export function LaborDataForm({ dispatch, baselineData }: Props) {
       type: "UPDATE_PRODUCT_LABOR",
       payload: {
         field: {
-          postPrintingTimeHours: hoursValue,
+          postPrintTimeHours: hoursValue,
           postPrintTimeMinutes: minutesValue,
           totalPostPrintTimeMinutes: hoursValue * 60 + minutesValue,
         },
@@ -65,25 +49,9 @@ export function LaborDataForm({ dispatch, baselineData }: Props) {
 
   return (
     <div>
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button variant="ghost" size="icon-sm">
-            <Info className="w-4 h-4" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent align="start">
-          <PopoverHeader>
-            <PopoverTitle>Custos:</PopoverTitle>
-            <PopoverDescription>
-              <p>Modelagem: {baselineData.modelingLaborCostPerHour} R$/h</p>
-              <p>Montagem: {baselineData.postPrintingLaborCostPerHour} R$/h</p>
-            </PopoverDescription>
-          </PopoverHeader>
-        </PopoverContent>
-      </Popover>
-      <div className="space-y-1.5">
-        <div className="space-y-1.5 flex justify-between">
-          <div className="space-y-1.5">
+      <div className="space-y-3">
+        <div className="flex justify-between gap-4">
+          <div className="space-y-2.5">
             <Label htmlFor="modelingTimeHours">Tempo de Modelagem</Label>
             <div className="flex items-center gap-1">
               <div>
@@ -116,8 +84,8 @@ export function LaborDataForm({ dispatch, baselineData }: Props) {
               </div>
             </div>
           </div>
-          <div className="space-y-1.5 flex gap-2">
-            <div className="space-y-1.5">
+          <div className="flex gap-2">
+            <div className="space-y-2.5">
               <Label htmlFor="postPrintingTimeHours">Tempo de Montagem</Label>
               <div className="flex items-center gap-1">
                 <div>

@@ -17,7 +17,8 @@ export function price(
       (usedFilament.usedAmountG / 1000) * isRegistered.pricePerKg;
 
     const wasteG =
-      usedFilament.usedAmountG * (baseline.filaments.wastePercentage / 100);
+      usedFilament.usedAmountG *
+      (baseline.printer.filamentWastePercentage / 100);
     const wasteCost = (wasteG / 1000) * isRegistered.pricePerKg;
     const usedFilamentWithWasteCost = usedFilamentCost + wasteCost;
     const usedFilamentWithWasteG = usedFilament.usedAmountG + wasteG;
@@ -169,30 +170,19 @@ export function price(
     formula: `valor da hora de modelagem × tempo total de modelagem ÷ quantidade de peças`,
   });
 
-  const postPrintingLaborOnePieceCost =
+  const postPrintingLaborCost =
     baseline.labor.postPrintingLaborCostPerHour *
     (form.productLabor.totalPostPrintTimeMinutes / 60);
 
   pricingDetails.push({
     label: "Custo do Pós-Processamento (Montagem/Acabamento)",
-    value: postPrintingLaborOnePieceCost,
+    value: postPrintingLaborCost,
     formula: `valor da hora de pós-processamento × tempo total de pós-processamento`,
-  });
-
-  const totalPostPrintingLaborCost =
-    baseline.labor.postPrintingLaborCostPerHour *
-    (form.productLabor.totalPostPrintTimeMinutes / 60) * form.printingData.piecesQuantity;
-
-  pricingDetails.push({
-    label: "Custo Total do Pós-Processamento (Montagem/Acabamento)",
-    value: totalPostPrintingLaborCost,
-    formula: `valor da hora de pós-processamento × tempo total de pós-processamento x quantidade de peças`,
   });
 
   const laborCosts: PricingResult["laborCosts"] = {
     modelingLaborCost,
-    postPrintingLaborOnePieceCost,
-    totalPostPrintingLaborCost,
+    postPrintingLaborCost,
   };
 
   // 5. ACESSÓRIOS
@@ -206,6 +196,7 @@ export function price(
         name: cadastrado.name,
         cost: cadastrado.unitPrice * usedAddon.quantity,
         type: cadastrado.type,
+        unitPrice: cadastrado.unitPrice,
       },
     ];
   });
@@ -224,7 +215,7 @@ export function price(
 
   pricingDetails.push({
     label: "Custo Total dos Acessórios",
-    value: totalAddonsCost,
+    value: accessoryAddonsCost,
     formula: "Σ (preço unitário × quantidade)",
   });
 
@@ -244,8 +235,7 @@ export function price(
     formula: `(distância ÷ km/litro) × preço do litro de combustível`,
   });
 
-  const logisticCosts =
-    packingAddonsCost + transportCost;
+  const logisticCosts = packingAddonsCost + transportCost;
 
   pricingDetails.push({
     label: "Custo logístico total",
@@ -261,7 +251,7 @@ export function price(
     failureCost +
     totalFixedCosts +
     modelingLaborCost +
-    postPrintingLaborOnePieceCost +
+    postPrintingLaborCost +
     accessoryAddonsCost;
 
   pricingDetails.push({
@@ -284,7 +274,7 @@ export function price(
   // 9. MARGEM E IMPOSTOS
   const totalTaxes =
     baseline.taxes.riskReservePercentage +
-    baseline.taxes.governmentTax +
+    baseline.taxes.governmentTaxPercentage +
     baseline.taxes.creditCartFeePercentage +
     baseline.taxes.commissionFeePercentage;
 
@@ -294,10 +284,10 @@ export function price(
       baseline.taxes.platformFee) /
     (1 -
       (baseline.taxes.riskReservePercentage +
-        baseline.taxes.governmentTax +
+        baseline.taxes.governmentTaxPercentage +
         baseline.taxes.creditCartFeePercentage +
         baseline.taxes.commissionFeePercentage) /
-      100);
+        100);
   pricingDetails.push({
     label: "Preço final (Plataforma)",
     value: finalPlatformPrice,
@@ -308,9 +298,9 @@ export function price(
     (totalProductionCostWithLogisticsAndPacking + form.desiredProfit) /
     (1 -
       (baseline.taxes.riskReservePercentage +
-        baseline.taxes.governmentTax +
+        baseline.taxes.governmentTaxPercentage +
         baseline.taxes.creditCartFeePercentage) /
-      100);
+        100);
   pricingDetails.push({
     label: "Preço final (Cartão de Crédito)",
     value: finalPriceCreditCard,
@@ -319,8 +309,9 @@ export function price(
   const finalPricePix =
     (totalProductionCostWithLogisticsAndPacking + form.desiredProfit) /
     (1 -
-      (baseline.taxes.riskReservePercentage + baseline.taxes.governmentTax) /
-      100);
+      (baseline.taxes.riskReservePercentage +
+        baseline.taxes.governmentTaxPercentage) /
+        100);
   pricingDetails.push({ label: "Preço final (Pix)", value: finalPricePix });
 
   return {
@@ -341,6 +332,6 @@ export function price(
     details: pricingDetails,
     packingAddonsCost,
     transportCost,
-    piecesQuantity: form.piecesQuantity,
+    piecesQuantity: form.printingData.piecesQuantity,
   };
 }

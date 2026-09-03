@@ -27,23 +27,22 @@ type PricingBaseline = {
     energyConsumptionKw: number;
     lifeCycleHr: number;
     filamentWastePercentage: number;
+    defaultFailureChancePercentage: number | null;
   };
   energy: {
     valueKwH: number;
   };
   taxes: {
-    standardFailureChance: number;
     profitType: "percentage" | "number";
-    standardProfit: number;
+    defaultDesiredProfit: number | null;
     creditCartFeePercentage: number;
     commissionFeePercentage: number;
-    governmentTax: number;
-    platformFee: number;
+    governmentTaxPercentage: number;
     riskReservePercentage: number;
+    platformFee: number;
   };
   filaments: {
     list: RegisteredFilament[];
-    wastePercentage: number;
   };
   logistics: {
     gasPricePerLitter: number;
@@ -125,8 +124,7 @@ type PricingResult = {
   fixedCosts: number;
   laborCosts: {
     modelingLaborCost: number;
-    postPrintingLaborOnePieceCost: number;
-    totalPostPrintingLaborCost: number;
+    postPrintingLaborCost: number;
   };
   addonsCosts: {
     totalAddonsCost: number;
@@ -134,6 +132,7 @@ type PricingResult = {
       name: string;
       cost: number;
       type: "accessory" | "packing";
+      unitPrice: number;
     }[];
   };
   packingAddonsCost: number;
@@ -159,25 +158,25 @@ type PricingDetails = {
 
 type ProductPricingAction =
   | {
-    type: "UPDATE_PRINTING_DATA";
-    payload: { field: Partial<PrintingData> };
-  }
+      type: "UPDATE_PRINTING_DATA";
+      payload: { field: Partial<PrintingData> };
+    }
   | {
-    type: "UPDATE_PRODUCT_LABOR";
-    payload: { field: Partial<ProductLabor> };
-  }
+      type: "UPDATE_PRODUCT_LABOR";
+      payload: { field: Partial<ProductLabor> };
+    }
   | { type: "ADD_FILAMENT" }
   | { type: "REMOVE_FILAMENT"; payload: { id: string } }
   | {
-    type: "UPDATE_FILAMENT";
-    payload: { id: string; field: Partial<UsedFilament> };
-  }
+      type: "UPDATE_FILAMENT";
+      payload: { id: string; field: Partial<UsedFilament> };
+    }
   | { type: "ADD_ADDON" }
   | { type: "REMOVE_ADDON"; payload: { id: string } }
   | {
-    type: "UPDATE_ADDON";
-    payload: { id: string; field: Partial<UsedAddon> };
-  }
+      type: "UPDATE_ADDON";
+      payload: { id: string; field: Partial<UsedAddon> };
+    }
   | { type: "CALCULATE_START" }
   | { type: "CALCULATE_SUCCESS"; payload: PricingResult }
   | { type: "CALCULATE_ERROR"; payload: string }

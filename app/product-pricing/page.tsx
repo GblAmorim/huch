@@ -47,7 +47,7 @@ const ProductPricingPage = () => {
           {
             id: "1",
             brand: "3D Prime",
-            type: "PLA Basic",
+            material: "PLA Basic",
             color: "Verde",
             pricePerKg: 8100,
             remainingInStockG: 500,
@@ -56,7 +56,7 @@ const ProductPricingPage = () => {
           {
             id: "2",
             brand: "3D Prime",
-            type: "PLA Troca de Cor",
+            material: "PLA Troca de Cor",
             color: "Branco",
             pricePerKg: 6000,
             remainingInStockG: 500,
@@ -65,7 +65,7 @@ const ProductPricingPage = () => {
           {
             id: "3",
             brand: "Sunlu",
-            type: "PLA Premium",
+            material: "PLA Premium",
             color: "Azul",
             pricePerKg: 10000,
             remainingInStockG: 100,
@@ -74,7 +74,7 @@ const ProductPricingPage = () => {
           {
             id: "4",
             brand: "3D Prime",
-            type: "PLA Basic",
+            material: "PLA Basic",
             color: "Branco",
             pricePerKg: 8100,
             remainingInStockG: 500,

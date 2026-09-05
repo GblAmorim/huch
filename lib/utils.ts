@@ -11,3 +11,11 @@ export function formatMoney(centavos: number): string {
     currency: "BRL",
   });
 }
+
+export function formatDate(value: string | Date): string {
+  return new Date(value).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}

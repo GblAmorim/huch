@@ -49,7 +49,7 @@ export const UsedFilamentItem = React.memo(function UsedFilamentItem({
             <SelectTrigger className="w-55">
               {filamentSelected ? (
                 <span className="overflow-auto whitespace-nowrap">
-                  {filamentSelected.type} - {filamentSelected.color}
+                  {filamentSelected.material} - {filamentSelected.color}
                 </span>
               ) : (
                 <SelectValue placeholder="Selecione o filamento"></SelectValue>
@@ -63,7 +63,7 @@ export const UsedFilamentItem = React.memo(function UsedFilamentItem({
                     .filter((filament) => filament.brand === brand)
                     .map((filament) => (
                       <SelectItem key={filament.id} value={filament.id}>
-                        {filament.type} - {filament.color} -{" "}
+                        {filament.material} - {filament.color} -{" "}
                         {formatMoney(filament.pricePerKg)} R$/Kg
                       </SelectItem>
                     ))}

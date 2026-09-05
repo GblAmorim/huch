@@ -1,7 +1,7 @@
 type RegisteredFilament = {
   id: string;
   brand: string;
-  type: string;
+  material: string;
   color: string;
   pricePerKg: number;
   remainingInStockG: number;

@@ -8,6 +8,13 @@
       "when": 1787423697982,
       "tag": "0000_purple_fat_cobra",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788554602353,
+      "tag": "0001_chief_stature",
+      "breakpoints": true
     }
   ]
 }

@@ -129,7 +129,8 @@ export function PrintingDataForm({
                     field: {
                       failureChancePercentage:
                         e.target.value === ""
-                          ? baselineData.taxes.standardFailureChance
+                          ? (baselineData.printer
+                              .defaultFailureChancePercentage ?? 0)
                           : Number(e.target.value),
                     },
                   },

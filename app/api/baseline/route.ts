@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server";
-import { getConfig, upsertConfig } from "@/lib/services/config.service";
-import { configSchema } from "@/lib/schemas";
+import { getBaseline, upsertBaseline } from "@/lib/services/baseline.service";
+import { baselineSchema } from "@/lib/schemas";
 
 export async function GET() {
-  const cfg = await getConfig();
-  return NextResponse.json(cfg);
+  const baseline = await getBaseline();
+  return NextResponse.json(baseline);
 }
 
 export async function PUT(req: Request) {
   const body = await req.json();
-  const parsed = configSchema.safeParse(body);
+  const parsed = baselineSchema.safeParse(body);
 
   if (!parsed.success) {
     return NextResponse.json(
@@ -18,6 +18,6 @@ export async function PUT(req: Request) {
     );
   }
 
-  const saved = await upsertConfig(parsed.data);
+  const saved = await upsertBaseline(parsed.data);
   return NextResponse.json(saved);
 }

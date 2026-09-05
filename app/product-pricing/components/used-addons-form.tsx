@@ -3,8 +3,6 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
-import type { PricingResult } from "@/lib/schemas";
 
 interface Props {
   dispatch: React.Dispatch<ProductPricingAction>;

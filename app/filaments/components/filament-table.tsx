@@ -9,6 +9,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { formatMoney } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Pencil } from "lucide-react";
 
 export function FilamentTable() {
   const { filaments, loading } = useFilaments();
@@ -23,25 +26,32 @@ export function FilamentTable() {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Nome</TableHead>
+          <TableHead>Ação</TableHead>
           <TableHead>Marca</TableHead>
           <TableHead>Material</TableHead>
-          <TableHead className="text-right">Custo/kg</TableHead>
+          <TableHead>Tipo</TableHead>
+          <TableHead>Cor</TableHead>
+          <TableHead>Custo/kg</TableHead>
+          <TableHead>Estoque</TableHead>
+          <TableHead>Calibração</TableHead>
           <TableHead>Status</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {filaments.map((f) => (
           <TableRow key={f.id}>
-            <TableCell className="font-medium">{f.name}</TableCell>
-            <TableCell>{f.brand}</TableCell>
-            <TableCell>{f.material}</TableCell>
-            <TableCell className="text-right font-mono">
-              {f.costPerKg.toLocaleString("pt-BR", {
-                style: "currency",
-                currency: "BRL",
-              })}
+            <TableCell>
+              <Button size="icon-xs" type="button" variant="outline">
+                <Pencil className="h-4 w-4" />
+              </Button>
             </TableCell>
+            <TableCell className="font-medium">{f.brand}</TableCell>
+            <TableCell>{f.material}</TableCell>
+            <TableCell>{f.type}</TableCell>
+            <TableCell>{f.color}</TableCell>
+            <TableCell>{formatMoney(f.pricePerKg)}</TableCell>
+            <TableCell>{f.quantityBoughtG / 1000} Kg</TableCell>
+            <TableCell>{f.calibrationFlow}</TableCell>
             <TableCell>{f.active ? "Ativo" : "Inativo"}</TableCell>
           </TableRow>
         ))}

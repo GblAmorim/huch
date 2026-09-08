@@ -21,7 +21,7 @@ export function useLabelOptions(kind: LabelOptionKind) {
 
     async function fetchOptions() {
       try {
-        const res = await fetch(`/api/filaments/${kind}`);
+        const res = await fetch(`/api/labels/${kind}`);
         if (res.ok && !ignore) {
           const data = await res.json();
           setOptions(data);
@@ -44,7 +44,7 @@ export function useLabelOptions(kind: LabelOptionKind) {
 
   const createCustom = useCallback(
     async (label: string) => {
-      const res = await fetch(`/api/filaments/${kind}`, {
+      const res = await fetch(`/api/labels/${kind}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ label }),

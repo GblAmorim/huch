@@ -13,7 +13,7 @@ import { MoneyInput } from "@/components/common/money-input";
 import { SelectWithCustom } from "@/components/common/select-with-custom";
 import { FloatInput } from "@/components/common/float-input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Filament } from "@/lib/types";
+import { Filament, NewFilament } from "@/lib/types";
 
 const OTHER_OPTION = "other";
 
@@ -69,11 +69,12 @@ export function FilamentForm({ filament, onSaved }: FilamentFormProps) {
 
     const costInCents = data.cost * 100;
     const pricePerKg = costInCents / (data.quantityBoughtG / 1000);
-    const payload = {
+    const payload: NewFilament = {
       ...data,
       cost: costInCents,
       calibrationFlow: data.calibrationFlow ?? 0,
       pricePerKg,
+      note: data.note ?? "",
     };
     try {
       if (isEditing && filament) {
@@ -116,6 +117,7 @@ export function FilamentForm({ filament, onSaved }: FilamentFormProps) {
                   control={control}
                   loading={brands.loading}
                   disabled={isEditing}
+                  selected={filament?.brand}
                 />
                 {errors.brand && (
                   <p className="text-sm text-destructive">
@@ -135,6 +137,7 @@ export function FilamentForm({ filament, onSaved }: FilamentFormProps) {
                     control={control}
                     loading={materials.loading}
                     disabled={isEditing}
+                    selected={filament?.material}
                   />
                   {errors.material && (
                     <p className="text-sm text-destructive">
@@ -153,6 +156,7 @@ export function FilamentForm({ filament, onSaved }: FilamentFormProps) {
                     control={control}
                     loading={types.loading}
                     disabled={isEditing}
+                    selected={filament?.type}
                   />
                   {errors.type && (
                     <p className="text-sm text-destructive">
@@ -174,6 +178,7 @@ export function FilamentForm({ filament, onSaved }: FilamentFormProps) {
                   control={control}
                   loading={colors.loading}
                   disabled={isEditing}
+                  selected={filament?.color}
                 />
                 {errors.color && (
                   <p className="text-sm text-destructive">
@@ -210,9 +215,19 @@ export function FilamentForm({ filament, onSaved }: FilamentFormProps) {
                 <Controller
                   control={control}
                   name="cost"
-                  render={({ field }) => (
-                    <MoneyInput value={field.value} onChange={field.onChange} />
-                  )}
+                  render={({ field }) =>
+                    isEditing ? (
+                      <MoneyInput
+                        value={field.value / 100}
+                        onChange={field.onChange}
+                      />
+                    ) : (
+                      <MoneyInput
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
+                    )
+                  }
                 />
                 {errors.cost && (
                   <p className="text-sm text-destructive">

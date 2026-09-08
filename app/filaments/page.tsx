@@ -6,7 +6,7 @@ import { useState } from "react";
 import { FilamentTable } from "./components/filament-table";
 import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Filament } from "@/lib/db/schema";
+import { Filament } from "@/lib/types";
 
 export default function FilamentsPage() {
   const [registerFilament, setRegisterFilament] = useState<boolean>(false);
@@ -42,7 +42,7 @@ export default function FilamentsPage() {
       </div>
 
       {showForm ? (
-        <FilamentForm filament={editingFilament} onSave={handleClose} />
+        <FilamentForm filament={editingFilament} onSaved={handleClose} />
       ) : (
         <FilamentTable onEdit={setEditingFilament} />
       )}

@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "../ui/select";
 
-const OTHER_OPTION = "other";
+const OTHER_OPTION = "";
 
 interface SelectOption {
   id: string;
@@ -30,6 +30,7 @@ interface SelectWithCustomProps<TFieldValues extends FieldValues> {
   control: Control<TFieldValues>;
   loading?: boolean;
   disabled?: boolean;
+  selected?: string;
 }
 
 export function SelectWithCustom<TFieldValues extends FieldValues>({
@@ -40,6 +41,7 @@ export function SelectWithCustom<TFieldValues extends FieldValues>({
   control,
   loading = false,
   disabled = false,
+  selected = "",
 }: SelectWithCustomProps<TFieldValues>) {
   return (
     <Controller
@@ -54,7 +56,7 @@ export function SelectWithCustom<TFieldValues extends FieldValues>({
         return (
           <>
             <Select
-              value={field.value}
+              value={selected ?? field.value}
               disabled={loading || disabled}
               onValueChange={(value) => {
                 field.onChange(value);

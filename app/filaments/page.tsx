@@ -14,8 +14,8 @@ export default function FilamentsPage() {
       title="Filamentos"
       description="Cadastre, consulte e edite seus filamentos"
     >
-      <Accordion type="single" collapsible>
-        <AccordionItem value="packing-details">
+      <Accordion type="single" collapsible defaultValue="filament-form">
+        <AccordionItem value="filament-form">
           <AccordionTrigger>Cadastrar</AccordionTrigger>
           <AccordionContent>
             <Card>
@@ -26,6 +26,7 @@ export default function FilamentsPage() {
           </AccordionContent>
         </AccordionItem>
       </Accordion>
+
       {/* <FilamentsPage /> */}
     </PageContainer>
   );

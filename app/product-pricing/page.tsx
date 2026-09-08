@@ -224,7 +224,6 @@ const ProductPricingPage = () => {
                       <CardContent>
                         <LaborDataForm
                           dispatch={dispatch}
-                          baselineData={pricingBaselineData.labor}
                         />
                       </CardContent>
                     </Card>

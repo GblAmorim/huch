@@ -30,6 +30,7 @@ export function FilamentForm() {
     control,
     handleSubmit,
     reset,
+    clearErrors,
     formState: { errors, isSubmitting },
   } = useForm<FilamentInput>({
     resolver: zodResolver(filamentSchema),
@@ -39,6 +40,7 @@ export function FilamentForm() {
       type: "",
       color: "",
       cost: 0,
+      calibrationFlow: 0,
       quantityBoughtG: 0,
       note: "",
       active: true,
@@ -46,22 +48,30 @@ export function FilamentForm() {
   });
 
   async function onSubmit(data: FilamentInput) {
-    console.log("teste", data);
-
-    const pricePerKg = data.cost / data.quantityBoughtG;
+    const costInCents = data.cost * 100;
+    const pricePerKg = costInCents / (data.quantityBoughtG / 1000);
     try {
       await create({
         ...data,
+        cost: costInCents,
         calibrationFlow: data.calibrationFlow ?? 0,
         pricePerKg,
       });
       toast.success("Filamento cadastrado!");
-      reset();
+      reset(undefined, {
+        keepErrors: false,
+        keepIsSubmitted: false,
+        keepTouched: false,
+        keepIsValid: false,
+      });
+      clearErrors();
       setBrandOption("");
       setMaterialOption("");
       setTypeOption("");
       setColorOption("");
     } catch (err) {
+      console.log(err);
+
       toast.error(err instanceof Error ? err.message : "Erro ao cadastrar");
     }
   }
@@ -153,7 +163,7 @@ export function FilamentForm() {
               <p className="text-sm text-destructive">{errors.color.message}</p>
             )}
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 w-full">
             <Label htmlFor="calibrationFlow">Calibragem (Fator K)</Label>
             <Controller
               control={control}
@@ -189,7 +199,7 @@ export function FilamentForm() {
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="quantityBoughtG">Quantidade Comprada (g)</Label>
+            <Label htmlFor="quantityBoughtG">Quantidade (g)</Label>
             <Input
               id="quantityBoughtG"
               type="number"

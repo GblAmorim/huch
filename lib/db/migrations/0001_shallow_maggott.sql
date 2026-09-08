@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "filaments_brand_material_type_color_unique" ON "filaments" USING btree ("brand","material","type","color");

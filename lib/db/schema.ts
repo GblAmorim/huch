@@ -6,6 +6,7 @@ import {
   uuid,
   jsonb,
   boolean,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 // ── Filamentos (cadastro + precificação) ──────────────
@@ -14,13 +15,22 @@ export const filaments = pgTable("filaments", {
   brand: text("brand").notNull(),
   material: text("material").notNull(), // PLA, PETG, ABS, TPU...
   type: text("type").notNull(),
+  color: text("color").notNull(),
   cost: real("cost").notNull(), // R$
   quantityBoughtG: real("quantity_bought_g").notNull(), // g
   calibrationFlow: real("calibration_flow").default(0).notNull(), // mm³/s
   pricePerKg: real("price_per_kg").notNull(), // R$/kg
+  note: text("note"),
   active: boolean("active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => [
+  uniqueIndex('filaments_brand_material_type_color_unique').on(
+    table.brand,
+    table.material,
+    table.type,
+    table.color,
+  ),
+]);
 
 // ── Addons (acessórios = produção | embalagens = logística) ──
 export const addons = pgTable("addons", {

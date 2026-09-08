@@ -6,10 +6,9 @@ import { Label } from "@/components/ui/label";
 
 type Props = {
   dispatch: React.Dispatch<ProductPricingAction>;
-  baselineData: PricingBaseline["labor"];
 };
 
-export function LaborDataForm({ dispatch, baselineData }: Props) {
+export function LaborDataForm({ dispatch }: Props) {
   const [modelingTimeHours, setModelingTimeHours] = useState("");
   const [modelingTimeMinutes, setModelingTimeMinutes] = useState("");
   const [postPrintingTimeHours, setPostPrintingTimeHours] = useState("");

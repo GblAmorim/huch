@@ -50,13 +50,32 @@ export function useFilaments(activeOnly = false) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error ?? "Erro ao criar filamento");
+    const raw = await res.text();
+    let body: unknown = null;
+    if (raw) {
+      try {
+        body = JSON.parse(raw);
+      } catch {
+        body = null;
+      }
     }
-    const created = await res.json();
+
+    if (!res.ok) {
+      const message =
+        body && typeof body === 'object' && 'error' in body
+          ? String((body as { error: string }).error)
+          : `Erro ${res.status} ao criar filamento. Verifique o console do servidor.`;
+      throw new Error(message);
+    }
+
+    if (res.status === 204 || body === null) {
+      setFilaments((prev) => [{ ...data, id: crypto.randomUUID(), createdAt: new Date().toISOString() } as Filament, ...prev]);
+      return null;
+    }
+
+    const created = body as Filament;
     setFilaments((prev) => [created, ...prev]);
-    return created as Filament;
+    return created;
   }, []);
 
   return { filaments, loading, error, reload, create };

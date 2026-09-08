@@ -41,10 +41,15 @@ CREATE TABLE "filament_types" (
 --> statement-breakpoint
 CREATE TABLE "filaments" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"name" text NOT NULL,
 	"brand" text NOT NULL,
 	"material" text NOT NULL,
-	"cost_per_kg" real NOT NULL,
+	"type" text NOT NULL,
+	"color" text NOT NULL,
+	"cost" real NOT NULL,
+	"quantity_bought_g" real NOT NULL,
+	"calibration_flow" real DEFAULT 0 NOT NULL,
+	"price_per_kg" real NOT NULL,
+	"note" text,
 	"active" boolean DEFAULT true NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL
 );
@@ -63,18 +68,13 @@ CREATE TABLE "pricing_baseline" (
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-DROP TABLE "config" CASCADE;--> statement-breakpoint
-ALTER TABLE "pricing_records" ADD COLUMN "printing_data" jsonb NOT NULL;--> statement-breakpoint
-ALTER TABLE "pricing_records" ADD COLUMN "addons" jsonb NOT NULL;--> statement-breakpoint
-ALTER TABLE "pricing_records" ADD COLUMN "labor" jsonb NOT NULL;--> statement-breakpoint
-ALTER TABLE "pricing_records" ADD COLUMN "baseline_snapshot" jsonb NOT NULL;--> statement-breakpoint
-ALTER TABLE "pricing_records" ADD COLUMN "result" jsonb NOT NULL;--> statement-breakpoint
-ALTER TABLE "pricing_records" DROP COLUMN "filament_weight_g";--> statement-breakpoint
-ALTER TABLE "pricing_records" DROP COLUMN "print_time_hours";--> statement-breakpoint
-ALTER TABLE "pricing_records" DROP COLUMN "config_snapshot";--> statement-breakpoint
-ALTER TABLE "pricing_records" DROP COLUMN "material_cost";--> statement-breakpoint
-ALTER TABLE "pricing_records" DROP COLUMN "energy_cost";--> statement-breakpoint
-ALTER TABLE "pricing_records" DROP COLUMN "labor_cost";--> statement-breakpoint
-ALTER TABLE "pricing_records" DROP COLUMN "overhead_cost";--> statement-breakpoint
-ALTER TABLE "pricing_records" DROP COLUMN "total_cost";--> statement-breakpoint
-ALTER TABLE "pricing_records" DROP COLUMN "final_price";
+CREATE TABLE "pricing_records" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"piece_name" text NOT NULL,
+	"printing_data" jsonb NOT NULL,
+	"addons" jsonb NOT NULL,
+	"labor" jsonb NOT NULL,
+	"baseline_snapshot" jsonb NOT NULL,
+	"result" jsonb NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL
+);

@@ -1,6 +1,6 @@
 {
-  "id": "e9956c1a-8bb7-4b9c-949a-e07fc17609a7",
-  "prevId": "52a4e868-a72f-43d1-80cf-06e299ae5c52",
+  "id": "71c30c51-439b-45f8-abad-f9322c9deb17",
+  "prevId": "e1e6f6f6-41de-47e7-96b1-d8fcc861b5a2",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -259,12 +259,6 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
         "brand": {
           "name": "brand",
           "type": "text",
@@ -277,11 +271,48 @@
           "primaryKey": false,
           "notNull": true
         },
-        "cost_per_kg": {
-          "name": "cost_per_kg",
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "color": {
+          "name": "color",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cost": {
+          "name": "cost",
           "type": "real",
           "primaryKey": false,
           "notNull": true
+        },
+        "quantity_bought_g": {
+          "name": "quantity_bought_g",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "calibration_flow": {
+          "name": "calibration_flow",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "price_per_kg": {
+          "name": "price_per_kg",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "note": {
+          "name": "note",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "active": {
           "name": "active",
@@ -298,7 +329,41 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "filaments_brand_material_type_color_unique": {
+          "name": "filaments_brand_material_type_color_unique",
+          "columns": [
+            {
+              "expression": "brand",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "material",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "color",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},

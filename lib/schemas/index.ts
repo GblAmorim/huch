@@ -46,7 +46,7 @@ export const filamentSchema = z.object({
     .int()
     .min(1, "Quantidade comprada deve ser pelo menos 1"),
   calibrationFlow: z.number().optional(),
-  pricePerKg: z.number().positive("Preço por kg deve ser positivo"),
+  pricePerKg: z.number().optional(),
   note: z.string().optional(),
   active: z.boolean(),
 });

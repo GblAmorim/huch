@@ -14,6 +14,7 @@ export interface Filament {
   cost: number;
   quantityBoughtG: number;
   pricePerKg: number;
+  note: string;
   active: boolean;
   createdAt: string;
 }
@@ -27,6 +28,7 @@ export interface NewFilament {
   cost: number;
   quantityBoughtG: number;
   pricePerKg: number;
+  note: string;
   active?: boolean;
 }
 

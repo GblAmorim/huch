@@ -6,7 +6,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { formatMoney } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 type Props = {
   result: PricingResult;

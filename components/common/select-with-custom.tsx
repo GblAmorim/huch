@@ -26,67 +26,72 @@ interface SelectWithCustomProps<TFieldValues extends FieldValues> {
   name: Path<TFieldValues>;
   options: SelectOption[];
   placeholder?: string;
-  value?: string;
-  onValueChange: (value: string) => void;
   className?: string;
   control: Control<TFieldValues>;
   loading?: boolean;
+  disabled?: boolean;
 }
 
 export function SelectWithCustom<TFieldValues extends FieldValues>({
   name,
   options,
   placeholder = "Selecione...",
-  value,
-  onValueChange,
   className,
   control,
   loading = false,
+  disabled = false,
 }: SelectWithCustomProps<TFieldValues>) {
   return (
     <Controller
       control={control}
       name={name}
-      render={({ field }) => (
-        <>
-          <Select
-            value={value}
-            disabled={loading}
-            onValueChange={(value) => {
-              onValueChange(value);
-              field.onChange(value === OTHER_OPTION ? "" : value);
-            }}
-          >
-            <SelectTrigger id={name} className={className}>
-              {loading ? (
-                <span className="flex items-center gap-1.5 text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Carregando...
-                </span>
-              ) : (
-                <SelectValue placeholder={placeholder}></SelectValue>
-              )}
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {options.map((option) => (
-                  <SelectItem key={option.id} value={option.label}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-                <SelectItem value={OTHER_OPTION}>Outro</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          {value === OTHER_OPTION && (
-            <Input
-              placeholder="Digite"
+      render={({ field }) => {
+        const isCustomValue =
+          field.value !== "" &&
+          field.value !== undefined &&
+          !options.some((option) => option.label === field.value);
+
+        return (
+          <>
+            <Select
               value={field.value}
-              onChange={(e) => field.onChange(e.target.value)}
-            />
-          )}
-        </>
-      )}
+              disabled={loading || disabled}
+              onValueChange={(value) => {
+                field.onChange(value);
+              }}
+            >
+              <SelectTrigger id={name} className={className}>
+                {loading ? (
+                  <span className="flex items-center gap-1.5 text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Carregando...
+                  </span>
+                ) : (
+                  <SelectValue placeholder={placeholder} />
+                )}
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {options.map((option) => (
+                    <SelectItem key={option.id} value={option.label}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value={OTHER_OPTION}>Outro</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            {isCustomValue && (
+              <Input
+                placeholder="Digite"
+                value={field.value}
+                disabled={disabled}
+                onChange={(e) => field.onChange(e.target.value)}
+              />
+            )}
+          </>
+        );
+      }}
     />
   );
 }

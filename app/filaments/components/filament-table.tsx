@@ -12,8 +12,13 @@ import {
 import { formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Pencil } from "lucide-react";
+import { Filament } from "@/lib/types";
 
-export function FilamentTable() {
+interface FilamentTableProps {
+  onEdit?: (filament: Filament) => void;
+}
+
+export function FilamentTable({ onEdit }: FilamentTableProps) {
   const { filaments, loading } = useFilaments();
 
   if (loading) return <p className="text-muted-foreground">Carregando...</p>;
@@ -35,13 +40,19 @@ export function FilamentTable() {
           <TableHead>Estoque</TableHead>
           <TableHead>Calibração</TableHead>
           <TableHead>Status</TableHead>
+          <TableHead>Notas</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {filaments.map((f) => (
           <TableRow key={f.id}>
             <TableCell>
-              <Button size="icon-xs" type="button" variant="outline">
+              <Button
+                size="icon-xs"
+                type="button"
+                variant="outline"
+                onClick={() => onEdit?.(f)}
+              >
                 <Pencil className="h-4 w-4" />
               </Button>
             </TableCell>
@@ -53,6 +64,7 @@ export function FilamentTable() {
             <TableCell>{f.quantityBoughtG / 1000} Kg</TableCell>
             <TableCell>{f.calibrationFlow}</TableCell>
             <TableCell>{f.active ? "Ativo" : "Inativo"}</TableCell>
+            <TableCell>{f.note}</TableCell>
           </TableRow>
         ))}
       </TableBody>

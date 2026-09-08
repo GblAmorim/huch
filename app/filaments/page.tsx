@@ -6,38 +6,46 @@ import { useState } from "react";
 import { FilamentTable } from "./components/filament-table";
 import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Filament } from "@/lib/db/schema";
 
 export default function FilamentsPage() {
   const [registerFilament, setRegisterFilament] = useState<boolean>(false);
+  const [editingFilament, setEditingFilament] = useState<Filament | null>(null);
+
+  const showForm = registerFilament || editingFilament !== null;
+
+  function handleClose() {
+    setRegisterFilament(false);
+    setEditingFilament(null);
+  }
+
+  function handleNew() {
+    setRegisterFilament(true);
+    setEditingFilament(null);
+  }
 
   return (
     <PageContainer
       title="Filamentos"
       description="Cadastre, consulte e edite seus filamentos"
     >
-      {registerFilament ? (
-        <div className="flex justify-end mb-2">
-          <Button
-            size="icon-sm"
-            type="button"
-            onClick={() => setRegisterFilament(false)}
-          >
+      <div className="flex justify-end mb-2">
+        {registerFilament || showForm ? (
+          <Button size="icon-sm" type="button" onClick={handleClose}>
             <X className="h-4 w-4" />
           </Button>
-        </div>
-      ) : (
-        <div className="flex justify-end mb-2">
-          <Button
-            size="icon-sm"
-            type="button"
-            onClick={() => setRegisterFilament(true)}
-          >
+        ) : (
+          <Button size="icon-sm" type="button" onClick={handleNew}>
             <Plus className="h-4 w-4" />
           </Button>
-        </div>
-      )}
+        )}
+      </div>
 
-      {registerFilament ? <FilamentForm /> : <FilamentTable />}
+      {showForm ? (
+        <FilamentForm filament={editingFilament} onSave={handleClose} />
+      ) : (
+        <FilamentTable onEdit={setEditingFilament} />
+      )}
     </PageContainer>
   );
 }

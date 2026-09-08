@@ -62,14 +62,21 @@ export function useFilaments(activeOnly = false) {
 
     if (!res.ok) {
       const message =
-        body && typeof body === 'object' && 'error' in body
+        body && typeof body === "object" && "error" in body
           ? String((body as { error: string }).error)
           : `Erro ${res.status} ao criar filamento. Verifique o console do servidor.`;
       throw new Error(message);
     }
 
     if (res.status === 204 || body === null) {
-      setFilaments((prev) => [{ ...data, id: crypto.randomUUID(), createdAt: new Date().toISOString() } as Filament, ...prev]);
+      setFilaments((prev) => [
+        {
+          ...data,
+          id: crypto.randomUUID(),
+          createdAt: new Date().toISOString(),
+        } as Filament,
+        ...prev,
+      ]);
       return null;
     }
 
@@ -78,5 +85,33 @@ export function useFilaments(activeOnly = false) {
     return created;
   }, []);
 
-  return { filaments, loading, error, reload, create };
+  const update = useCallback(async (id: string, data: Partial<NewFilament>) => {
+    const res = await fetch(`/api/filaments/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    const raw = await res.text();
+    let body: unknown = null;
+    if (raw) {
+      try {
+        body = JSON.parse(raw);
+      } catch {
+        body = null;
+      }
+    }
+    if (!res.ok) {
+      const message =
+        body && typeof body === "object" && "error" in body
+          ? String((body as { error: string }).error)
+          : `Erro ${res.status} ao atualizar filamento. Verifique o console do servidor.`;
+      throw new Error(message);
+    }
+
+    const updated = body as Filament;
+    setFilaments((prev) => prev.map((f) => (f.id === id ? updated : f)));
+    return updated;
+  }, []);
+
+  return { filaments, loading, error, reload, create, update };
 }

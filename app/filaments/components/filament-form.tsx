@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { filamentSchema, type FilamentInput } from "@/lib/schemas";
@@ -14,17 +13,34 @@ import { MoneyInput } from "@/components/common/money-input";
 import { SelectWithCustom } from "@/components/common/select-with-custom";
 import { FloatInput } from "@/components/common/float-input";
 import { Card, CardContent } from "@/components/ui/card";
+import { Filament } from "@/lib/types";
 
-export function FilamentForm() {
-  const { create } = useFilaments();
+const OTHER_OPTION = "other";
+
+const EMPTY_VALUES: FilamentInput = {
+  brand: "",
+  material: "",
+  type: "",
+  color: "",
+  cost: 0,
+  calibrationFlow: 0,
+  quantityBoughtG: 0,
+  note: "",
+  active: true,
+};
+
+interface FilamentFormProps {
+  filament?: Filament | null;
+  onSaved?: () => void;
+}
+
+export function FilamentForm({ filament, onSaved }: FilamentFormProps) {
+  const isEditing = Boolean(filament);
+  const { create, update } = useFilaments();
   const brands = useLabelOptions("brand");
   const materials = useLabelOptions("material");
   const types = useLabelOptions("type");
   const colors = useLabelOptions("color");
-  const [brandOption, setBrandOption] = useState("");
-  const [materialOption, setMaterialOption] = useState("");
-  const [typeOption, setTypeOption] = useState("");
-  const [colorOption, setColorOption] = useState("");
 
   const {
     register,
@@ -35,44 +51,48 @@ export function FilamentForm() {
     formState: { errors, isSubmitting },
   } = useForm<FilamentInput>({
     resolver: zodResolver(filamentSchema),
-    defaultValues: {
-      brand: "",
-      material: "",
-      type: "",
-      color: "",
-      cost: 0,
-      calibrationFlow: 0,
-      quantityBoughtG: 0,
-      note: "",
-      active: true,
-    },
+    defaultValues: EMPTY_VALUES,
+    values: filament ?? undefined,
   });
 
   async function onSubmit(data: FilamentInput) {
+    const hasUnfilledCustom = [
+      data.brand,
+      data.material,
+      data.type,
+      data.color,
+    ].some((value) => value === OTHER_OPTION);
+    if (hasUnfilledCustom) {
+      toast.error("Preencha os campos selecionados como 'Outro'.");
+      return;
+    }
+
     const costInCents = data.cost * 100;
     const pricePerKg = costInCents / (data.quantityBoughtG / 1000);
+    const payload = {
+      ...data,
+      cost: costInCents,
+      calibrationFlow: data.calibrationFlow ?? 0,
+      pricePerKg,
+    };
     try {
-      await create({
-        ...data,
-        cost: costInCents,
-        calibrationFlow: data.calibrationFlow ?? 0,
-        pricePerKg,
-      });
-      toast.success("Filamento cadastrado!");
-      reset(undefined, {
-        keepErrors: false,
-        keepIsSubmitted: false,
-        keepTouched: false,
-        keepIsValid: false,
-      });
+      if (isEditing && filament) {
+        await update(filament.id, payload);
+        toast.success("Filamento atualizado.");
+        onSaved?.();
+      } else {
+        await create(payload);
+        toast.success("Filamento cadastrado.");
+        reset(undefined, {
+          keepErrors: false,
+          keepIsSubmitted: false,
+          keepTouched: false,
+          keepIsValid: false,
+        });
+      }
       clearErrors();
-      setBrandOption("");
-      setMaterialOption("");
-      setTypeOption("");
-      setColorOption("");
     } catch (err) {
       console.log(err);
-
       toast.error(err instanceof Error ? err.message : "Erro ao cadastrar");
     }
   }
@@ -91,14 +111,11 @@ export function FilamentForm() {
                 <SelectWithCustom
                   name="brand"
                   options={brands.options}
-                  value={brandOption}
-                  onValueChange={(value) => {
-                    setBrandOption(value);
-                  }}
                   placeholder="Selecione a Marca"
                   className="w-full"
                   control={control}
                   loading={brands.loading}
+                  disabled={isEditing}
                 />
                 {errors.brand && (
                   <p className="text-sm text-destructive">
@@ -106,20 +123,18 @@ export function FilamentForm() {
                   </p>
                 )}
               </div>
+
               <div className="flex gap-6 mt-4">
                 <div className="space-y-2 w-full">
                   <Label htmlFor="material">Material</Label>
                   <SelectWithCustom
                     name="material"
                     options={materials.options}
-                    value={materialOption}
-                    onValueChange={(value) => {
-                      setMaterialOption(value);
-                    }}
                     placeholder="Selecione o Material"
                     className="w-full"
                     control={control}
                     loading={materials.loading}
+                    disabled={isEditing}
                   />
                   {errors.material && (
                     <p className="text-sm text-destructive">
@@ -127,19 +142,17 @@ export function FilamentForm() {
                     </p>
                   )}
                 </div>
+
                 <div className="space-y-2 w-full">
                   <Label htmlFor="type">Tipo</Label>
                   <SelectWithCustom
                     name="type"
                     options={types.options}
-                    value={typeOption}
-                    onValueChange={(value) => {
-                      setTypeOption(value);
-                    }}
                     placeholder="Selecione o Tipo"
                     className="w-full"
                     control={control}
                     loading={types.loading}
+                    disabled={isEditing}
                   />
                   {errors.type && (
                     <p className="text-sm text-destructive">
@@ -149,20 +162,18 @@ export function FilamentForm() {
                 </div>
               </div>
             </div>
+
             <div className="flex gap-6">
               <div className="space-y-2 w-full">
                 <Label htmlFor="color">Cor</Label>
                 <SelectWithCustom
                   name="color"
                   options={colors.options}
-                  value={colorOption}
-                  onValueChange={(value) => {
-                    setColorOption(value);
-                  }}
                   placeholder="Selecione a Cor"
                   className="w-full"
                   control={control}
                   loading={colors.loading}
+                  disabled={isEditing}
                 />
                 {errors.color && (
                   <p className="text-sm text-destructive">
@@ -170,6 +181,7 @@ export function FilamentForm() {
                   </p>
                 )}
               </div>
+
               <div className="space-y-2 w-full">
                 <Label htmlFor="calibrationFlow">Calibragem (Fator K)</Label>
                 <Controller
@@ -191,6 +203,7 @@ export function FilamentForm() {
                 )}
               </div>
             </div>
+
             <div className="flex gap-6">
               <div className="space-y-2">
                 <Label htmlFor="cost">Custo do Rolo (R$)</Label>
@@ -207,6 +220,7 @@ export function FilamentForm() {
                   </p>
                 )}
               </div>
+
               <div className="space-y-2">
                 <Label htmlFor="quantityBoughtG">Quantidade (g)</Label>
                 <Input
@@ -239,12 +253,17 @@ export function FilamentForm() {
               )}
             </div>
           </div>
+
           <Button
             type="submit"
             disabled={isSubmitting}
             className="w-4/5 self-center"
           >
-            {isSubmitting ? "Salvando..." : "Cadastrar filamento"}
+            {isSubmitting
+              ? "Salvando..."
+              : isEditing
+                ? "Salvar Alterações"
+                : "Cadastrar filamento"}
           </Button>
         </form>
       </CardContent>

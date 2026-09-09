@@ -14,8 +14,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { useState } from "react";
 
-const OTHER_OPTION = "";
+const OTHER_OPTION = "__other__";
 
 interface SelectOption {
   id: string;
@@ -30,7 +31,6 @@ interface SelectWithCustomProps<TFieldValues extends FieldValues> {
   control: Control<TFieldValues>;
   loading?: boolean;
   disabled?: boolean;
-  selected?: string;
 }
 
 export function SelectWithCustom<TFieldValues extends FieldValues>({
@@ -41,25 +41,34 @@ export function SelectWithCustom<TFieldValues extends FieldValues>({
   control,
   loading = false,
   disabled = false,
-  selected = "",
 }: SelectWithCustomProps<TFieldValues>) {
+  const [customMode, setCustomMode] = useState(false);
+
   return (
     <Controller
       control={control}
       name={name}
       render={({ field }) => {
-        const isCustomValue =
+        const hasExistingCustom =
           field.value !== "" &&
           field.value !== undefined &&
           !options.some((option) => option.label === field.value);
 
+        const showCustomInput = customMode || hasExistingCustom;
+
         return (
           <>
             <Select
-              value={selected ?? field.value}
+              value={field.value}
               disabled={loading || disabled}
               onValueChange={(value) => {
-                field.onChange(value);
+                if (value === OTHER_OPTION) {
+                  setCustomMode(true);
+                  field.onChange("");
+                } else {
+                  setCustomMode(false);
+                  field.onChange(value);
+                }
               }}
             >
               <SelectTrigger id={name} className={className}>
@@ -83,7 +92,7 @@ export function SelectWithCustom<TFieldValues extends FieldValues>({
                 </SelectGroup>
               </SelectContent>
             </Select>
-            {isCustomValue && (
+            {showCustomInput && (
               <Input
                 placeholder="Digite"
                 value={field.value}

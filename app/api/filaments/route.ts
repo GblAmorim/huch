@@ -16,22 +16,31 @@ export async function POST(req: Request) {
   const parsed = filamentSchema.safeParse(body);
 
   if (!parsed.success) {
-    return NextResponse.json({ error: "Dados inválidos", details: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { error: "Dados inválidos", details: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
-
   const data = parsed.data;
-  const pricePerKg = data.pricePerKg ?? data.cost / data.quantityBoughtG;
+  const pricePerKg = data.pricePerKg ?? data.rollPrice / (data.rollSize / 1000);
 
   try {
-    const created = await createFilament({ ...data, pricePerKg });
+    const created = await createFilament({
+      ...data,
+      pricePerKg,
+      stockQuantity: data.stockQuantity!,
+    });
     return NextResponse.json(created, { status: 201 });
   } catch (err) {
-    console.error('POST /api/filaments:', err);
+    console.error("POST /api/filaments:", err);
     if (err instanceof DuplicateFilamentError) {
       return NextResponse.json({ error: err.message }, { status: 409 });
     }
 
-    return NextResponse.json({ error: 'Erro ao salvar filamento' }, { status: 500 });
+    return NextResponse.json(
+      { error: "Erro ao salvar filamento" },
+      { status: 500 },
+    );
   }
 }

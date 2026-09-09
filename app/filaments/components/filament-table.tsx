@@ -61,7 +61,7 @@ export function FilamentTable({ onEdit }: FilamentTableProps) {
             <TableCell>{f.type}</TableCell>
             <TableCell>{f.color}</TableCell>
             <TableCell>{formatMoney(f.pricePerKg)}</TableCell>
-            <TableCell>{f.quantityBoughtG / 1000} Kg</TableCell>
+            <TableCell>{f.stockQuantity / 1000} Kg</TableCell>
             <TableCell>{f.calibrationFlow}</TableCell>
             <TableCell>{f.active ? "Ativo" : "Inativo"}</TableCell>
             <TableCell>{f.note}</TableCell>

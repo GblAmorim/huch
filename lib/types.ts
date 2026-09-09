@@ -11,8 +11,9 @@ export interface Filament {
   type: string;
   color: string;
   calibrationFlow: number;
-  cost: number;
-  quantityBoughtG: number;
+  rollSize: number;
+  rollPrice: number;
+  stockQuantity: number;
   pricePerKg: number;
   note: string;
   active: boolean;
@@ -25,8 +26,9 @@ export interface NewFilament {
   type: string;
   color: string;
   calibrationFlow: number;
-  cost: number;
-  quantityBoughtG: number;
+  rollSize: number;
+  rollPrice: number;
+  stockQuantity: number;
   pricePerKg: number;
   note: string;
   active?: boolean;

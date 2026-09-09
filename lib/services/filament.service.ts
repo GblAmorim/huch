@@ -17,8 +17,8 @@ export async function getAllFilaments(activeOnly = false) {
 
 export class DuplicateFilamentError extends Error {
   constructor() {
-    super('Filamento já cadastrado');
-    this.name = 'DuplicateFilamentError';
+    super("Filamento já cadastrado");
+    this.name = "DuplicateFilamentError";
   }
 }
 
@@ -45,10 +45,10 @@ export async function findDuplicateFilament(data: {
 }
 
 export async function createFilament(data: NewFilament) {
-  await ensureLabelExists('brand', data.brand);
-  await ensureLabelExists('material', data.material);
-  await ensureLabelExists('type', data.type);
-  await ensureLabelExists('color', data.color);
+  await ensureLabelExists("brand", data.brand);
+  await ensureLabelExists("material", data.material);
+  await ensureLabelExists("type", data.type);
+  await ensureLabelExists("color", data.color);
 
   const duplicate = await findDuplicateFilament(data);
   if (duplicate) {

@@ -1,0 +1,1 @@
+ALTER TABLE "filaments" DROP COLUMN "roll_quantity";

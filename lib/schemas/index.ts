@@ -40,15 +40,17 @@ export const filamentSchema = z.object({
   material: z.string().min(1, "Material é obrigatório"),
   type: z.string().min(1, "Tipo é obrigatório"),
   color: z.string().min(1, "Cor é obrigatória"),
-  cost: z.number().positive("Custo por kg deve ser positivo"),
-  quantityBoughtG: z
-    .number()
-    .int()
-    .min(1, "Quantidade comprada deve ser pelo menos 1"),
+  rollSize: z.number().int().positive("Selecione o tamanho do rolo"),
+  rollPrice: z.number().positive("Custo por kg deve ser positivo"),
   calibrationFlow: z.number().optional(),
   pricePerKg: z.number().optional(),
+  stockQuantity: z.number().optional(),
   note: z.string().optional(),
   active: z.boolean(),
+});
+
+export const filamentFormSchema = filamentSchema.extend({
+  rollQuantity: z.number().int().min(1, "Informe a quantidade de rolos"),
 });
 
 export const addonSchema = z.object({
@@ -116,6 +118,7 @@ export const labelOptionSchema = z.object({
 
 // Tipos inferidos — agora Input === Output
 export type FilamentInput = z.infer<typeof filamentSchema>;
+export type FilamentFormValues = z.infer<typeof filamentFormSchema>;
 export type AddonInput = z.infer<typeof addonSchema>;
 export type BaselineInput = z.infer<typeof baselineSchema>;
 export type PrintingDataInput = z.infer<typeof printingDataSchema>;

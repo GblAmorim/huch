@@ -4,12 +4,14 @@ interface MoneyInputProps {
   value: number; // valor em reais
   onChange: (value: number) => void;
   placeholder?: string;
+  disabled?: boolean;
 }
 
 export function MoneyInput({
   value,
   onChange,
   placeholder = "0,00",
+  disabled = false,
 }: MoneyInputProps) {
   const cents = Math.round(value * 100);
 
@@ -31,6 +33,7 @@ export function MoneyInput({
       onChange={handleChange}
       inputMode="numeric"
       placeholder={placeholder}
+      disabled={disabled}
     />
   );
 }

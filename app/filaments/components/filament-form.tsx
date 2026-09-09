@@ -1,8 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { filamentSchema, type FilamentInput } from "@/lib/schemas";
+import {
+  filamentFormSchema,
+  FilamentFormValues,
+  type FilamentInput,
+} from "@/lib/schemas";
 import { useFilaments } from "@/lib/hooks/use-filaments";
 import { useLabelOptions } from "@/lib/hooks/use-select-other";
 import { Button } from "@/components/ui/button";
@@ -14,15 +19,23 @@ import { SelectWithCustom } from "@/components/common/select-with-custom";
 import { FloatInput } from "@/components/common/float-input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Filament, NewFilament } from "@/lib/types";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const EMPTY_VALUES: FilamentInput = {
   brand: "",
   material: "",
   type: "",
   color: "",
-  cost: 0,
   calibrationFlow: 0,
-  quantityBoughtG: 0,
+  rollSize: 0,
+  rollPrice: 0,
   note: "",
   active: true,
 };
@@ -39,6 +52,10 @@ export function FilamentForm({ filament, onSaved }: FilamentFormProps) {
   const materials = useLabelOptions("material");
   const types = useLabelOptions("type");
   const colors = useLabelOptions("color");
+  const [brandOption, setBrandOption] = useState("");
+  const [materialOption, setMaterialOption] = useState("");
+  const [typeOption, setTypeOption] = useState("");
+  const [colorOption, setColorOption] = useState("");
 
   const {
     register,
@@ -47,29 +64,43 @@ export function FilamentForm({ filament, onSaved }: FilamentFormProps) {
     reset,
     clearErrors,
     formState: { errors, isSubmitting },
-  } = useForm<FilamentInput>({
-    resolver: zodResolver(filamentSchema),
-    defaultValues: EMPTY_VALUES,
-    values: filament ?? undefined,
+  } = useForm<FilamentFormValues>({
+    resolver: zodResolver(filamentFormSchema),
+    defaultValues: { ...EMPTY_VALUES, rollQuantity: 1 },
+    values: filament ? { ...filament, rollQuantity: 1 } : undefined,
   });
 
-  async function onSubmit(data: FilamentInput) {
-    const costInCents = data.cost * 100;
-    const pricePerKg = costInCents / (data.quantityBoughtG / 1000);
-    const payload: NewFilament = {
-      ...data,
-      cost: costInCents,
-      calibrationFlow: data.calibrationFlow ?? 0,
-      pricePerKg,
-      note: data.note ?? "",
-    };
+  async function onSubmit(data: FilamentFormValues) {
+    const { rollQuantity, ...rest } = data;
+    const costInCents = isEditing ? rest.rollPrice : rest.rollPrice * 100;
+    const weightToAddG = rollQuantity * rest.rollSize;
+    const pricePerKg = costInCents / (weightToAddG / 1000);
+    const stockQuantity = rest.stockQuantity
+      ? rest.stockQuantity + weightToAddG
+      : weightToAddG;
+
     try {
       if (isEditing && filament) {
-        await update(filament.id, payload);
+        const updatePayload: NewFilament = {
+          ...rest,
+          pricePerKg,
+          calibrationFlow: rest.calibrationFlow ?? 0,
+          stockQuantity,
+          note: rest.note ?? "",
+        };
+        await update(filament.id, updatePayload);
         toast.success("Filamento atualizado.");
         onSaved?.();
       } else {
-        await create(payload);
+        const createPayload: NewFilament = {
+          ...rest,
+          rollPrice: costInCents,
+          calibrationFlow: rest.calibrationFlow ?? 0,
+          pricePerKg,
+          stockQuantity,
+          note: rest.note ?? "",
+        };
+        await create(createPayload);
         toast.success("Filamento cadastrado.");
         reset(undefined, {
           keepErrors: false,
@@ -77,10 +108,15 @@ export function FilamentForm({ filament, onSaved }: FilamentFormProps) {
           keepTouched: false,
           keepIsValid: false,
         });
+        setBrandOption("");
+        setMaterialOption("");
+        setTypeOption("");
+        setColorOption("");
       }
       clearErrors();
     } catch (err) {
       console.log(err);
+
       toast.error(err instanceof Error ? err.message : "Erro ao cadastrar");
     }
   }
@@ -99,11 +135,16 @@ export function FilamentForm({ filament, onSaved }: FilamentFormProps) {
                 <SelectWithCustom
                   name="brand"
                   options={brands.options}
+                  value={brandOption}
+                  onValueChange={(value) => {
+                    setBrandOption(value);
+                  }}
                   placeholder="Selecione a Marca"
                   className="w-full"
                   control={control}
                   loading={brands.loading}
                   disabled={isEditing}
+                  selected={filament?.brand}
                 />
                 {errors.brand && (
                   <p className="text-sm text-destructive">
@@ -118,11 +159,16 @@ export function FilamentForm({ filament, onSaved }: FilamentFormProps) {
                   <SelectWithCustom
                     name="material"
                     options={materials.options}
+                    value={materialOption}
+                    onValueChange={(value) => {
+                      setMaterialOption(value);
+                    }}
                     placeholder="Selecione o Material"
                     className="w-full"
                     control={control}
                     loading={materials.loading}
                     disabled={isEditing}
+                    selected={filament?.material}
                   />
                   {errors.material && (
                     <p className="text-sm text-destructive">
@@ -136,11 +182,16 @@ export function FilamentForm({ filament, onSaved }: FilamentFormProps) {
                   <SelectWithCustom
                     name="type"
                     options={types.options}
+                    value={typeOption}
+                    onValueChange={(value) => {
+                      setTypeOption(value);
+                    }}
                     placeholder="Selecione o Tipo"
                     className="w-full"
                     control={control}
                     loading={types.loading}
                     disabled={isEditing}
+                    selected={filament?.type}
                   />
                   {errors.type && (
                     <p className="text-sm text-destructive">
@@ -157,11 +208,16 @@ export function FilamentForm({ filament, onSaved }: FilamentFormProps) {
                 <SelectWithCustom
                   name="color"
                   options={colors.options}
+                  value={colorOption}
+                  onValueChange={(value) => {
+                    setColorOption(value);
+                  }}
                   placeholder="Selecione a Cor"
                   className="w-full"
                   control={control}
                   loading={colors.loading}
                   disabled={isEditing}
+                  selected={filament?.color}
                 />
                 {errors.color && (
                   <p className="text-sm text-destructive">
@@ -192,47 +248,89 @@ export function FilamentForm({ filament, onSaved }: FilamentFormProps) {
               </div>
             </div>
 
-            <div className="flex gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="cost">Custo do Rolo (R$)</Label>
-                <Controller
-                  control={control}
-                  name="cost"
-                  render={({ field }) =>
-                    isEditing ? (
-                      <MoneyInput
-                        value={field.value / 100}
-                        onChange={field.onChange}
-                      />
-                    ) : (
-                      <MoneyInput
-                        value={field.value}
-                        onChange={field.onChange}
-                      />
-                    )
-                  }
-                />
-                {errors.cost && (
-                  <p className="text-sm text-destructive">
-                    {errors.cost.message}
-                  </p>
-                )}
-              </div>
+            <div>
+              <p>Dados do Rolo</p>
+              <div className="flex gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="rollSize">Tamanho</Label>
+                  <Controller
+                    control={control}
+                    name="rollSize"
+                    render={({ field }) => (
+                      <Select
+                        value={field.value ? String(field.value) : undefined}
+                        onValueChange={(value) => field.onChange(Number(value))}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectItem value="250">250 g</SelectItem>
+                            <SelectItem value="500">500 g</SelectItem>
+                            <SelectItem value="1000">1 Kg</SelectItem>
+                            <SelectItem value="2000">2 Kg</SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.rollSize && (
+                    <p className="text-sm text-destructive">
+                      {errors.rollSize.message}
+                    </p>
+                  )}
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="quantityBoughtG">Quantidade (g)</Label>
-                <Input
-                  id="quantityBoughtG"
-                  type="number"
-                  step="1"
-                  placeholder="500"
-                  {...register("quantityBoughtG", { valueAsNumber: true })}
-                />
-                {errors.quantityBoughtG && (
-                  <p className="text-sm text-destructive">
-                    {errors.quantityBoughtG.message}
+                <div className="space-y-2">
+                  <Label htmlFor="rollPrice">Custo (R$)</Label>
+                  <Controller
+                    control={control}
+                    name="rollPrice"
+                    render={({ field }) =>
+                      isEditing ? (
+                        <MoneyInput
+                          value={field.value / 100}
+                          onChange={field.onChange}
+                          disabled={true}
+                        />
+                      ) : (
+                        <MoneyInput
+                          value={field.value}
+                          onChange={field.onChange}
+                        />
+                      )
+                    }
+                  />
+                  {errors.rollPrice && (
+                    <p className="text-sm text-destructive">
+                      {errors.rollPrice.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="rollQuantity">Quantidade</Label>
+                  <Input
+                    id="rollQuantity"
+                    type="number"
+                    step="1"
+                    placeholder="1"
+                    {...register("rollQuantity", { valueAsNumber: true })}
+                  />
+                  <p className="text-xs">
+                    Estoque:{" "}
+                    {filament?.stockQuantity
+                      ? filament.stockQuantity / 1000
+                      : 0}{" "}
+                    Kg
                   </p>
-                )}
+                  {errors.rollQuantity && (
+                    <p className="text-sm text-destructive">
+                      {errors.rollQuantity.message}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
 

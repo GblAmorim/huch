@@ -15,6 +15,20 @@
       "when": 1788624187369,
       "tag": "0001_shallow_maggott",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788975414342,
+      "tag": "0002_chubby_the_stranger",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1788976325681,
+      "tag": "0003_lying_tarot",
+      "breakpoints": true
     }
   ]
 }

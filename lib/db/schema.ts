@@ -21,7 +21,6 @@ export const filaments = pgTable(
     calibrationFlow: real("calibration_flow").default(0).notNull(), // mm³/s
     rollSize: real("roll_size").notNull(), // g
     rollPrice: real("roll_price").notNull(), // R$
-    rollQuantity: real("roll_quantity").notNull(), // quantidade de rolos comprados
     stockQuantity: real("stock_quantity").notNull(), // quantidade em estoque
     pricePerKg: real("price_per_kg").notNull(), // R$/kg
     note: text("note"),

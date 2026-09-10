@@ -42,7 +42,11 @@ export default function FilamentsPage() {
       </div>
 
       {showForm ? (
-        <FilamentForm filament={editingFilament} onSaved={handleClose} />
+        <FilamentForm
+          key={editingFilament?.id ?? "novo"}
+          filament={editingFilament}
+          onSaved={handleClose}
+        />
       ) : (
         <FilamentTable onEdit={setEditingFilament} />
       )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -40,6 +40,13 @@ const EMPTY_VALUES: FilamentInput = {
   active: true,
 };
 
+const rollSizes = [
+  { value: 250, label: "250 g" },
+  { value: 500, label: "500 g" },
+  { value: 1000, label: "1 Kg" },
+  { value: 2000, label: "2 Kg" },
+];
+
 interface FilamentFormProps {
   filament?: Filament | null;
   onSaved?: () => void;
@@ -57,6 +64,15 @@ export function FilamentForm({ filament, onSaved }: FilamentFormProps) {
   const [typeOption, setTypeOption] = useState("");
   const [colorOption, setColorOption] = useState("");
 
+  const defaultValues = useMemo<FilamentFormValues>(
+    () => ({
+      ...EMPTY_VALUES,
+      ...(filament ?? {}),
+      rollQuantity: 1,
+    }),
+    [filament],
+  );
+
   const {
     register,
     control,
@@ -66,9 +82,10 @@ export function FilamentForm({ filament, onSaved }: FilamentFormProps) {
     formState: { errors, isSubmitting },
   } = useForm<FilamentFormValues>({
     resolver: zodResolver(filamentFormSchema),
-    defaultValues: { ...EMPTY_VALUES, rollQuantity: 1 },
-    values: filament ? { ...filament, rollQuantity: 1 } : undefined,
+    defaultValues,
   });
+
+  console.log("values: ", filament);
 
   async function onSubmit(data: FilamentFormValues) {
     const { rollQuantity, ...rest } = data;
@@ -102,17 +119,17 @@ export function FilamentForm({ filament, onSaved }: FilamentFormProps) {
         };
         await create(createPayload);
         toast.success("Filamento cadastrado.");
-        reset(undefined, {
-          keepErrors: false,
-          keepIsSubmitted: false,
-          keepTouched: false,
-          keepIsValid: false,
-        });
-        setBrandOption("");
-        setMaterialOption("");
-        setTypeOption("");
-        setColorOption("");
       }
+      reset(undefined, {
+        keepErrors: false,
+        keepIsSubmitted: false,
+        keepTouched: false,
+        keepIsValid: false,
+      });
+      setBrandOption("");
+      setMaterialOption("");
+      setTypeOption("");
+      setColorOption("");
       clearErrors();
     } catch (err) {
       console.log(err);
@@ -260,16 +277,27 @@ export function FilamentForm({ filament, onSaved }: FilamentFormProps) {
                       <Select
                         value={field.value ? String(field.value) : undefined}
                         onValueChange={(value) => field.onChange(Number(value))}
+                        disabled={isEditing}
                       >
                         <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Selecione" />
+                          {isEditing && field.value ? (
+                            (rollSizes.find(
+                              (r) => r.value === Number(field.value),
+                            )?.label ?? `${field.value} g`)
+                          ) : (
+                            <SelectValue placeholder="Selecione" />
+                          )}
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
-                            <SelectItem value="250">250 g</SelectItem>
-                            <SelectItem value="500">500 g</SelectItem>
-                            <SelectItem value="1000">1 Kg</SelectItem>
-                            <SelectItem value="2000">2 Kg</SelectItem>
+                            {rollSizes.map((roll) => (
+                              <SelectItem
+                                key={roll.value}
+                                value={String(roll.value)}
+                              >
+                                {roll.label}
+                              </SelectItem>
+                            ))}
                           </SelectGroup>
                         </SelectContent>
                       </Select>

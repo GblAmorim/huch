@@ -85,8 +85,6 @@ export function FilamentForm({ filament, onSaved }: FilamentFormProps) {
     defaultValues,
   });
 
-  console.log("values: ", filament);
-
   async function onSubmit(data: FilamentFormValues) {
     const { rollQuantity, ...rest } = data;
     const costInCents = isEditing ? rest.rollPrice : rest.rollPrice * 100;

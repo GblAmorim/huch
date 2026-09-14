@@ -56,6 +56,19 @@ export const filamentFormSchema = filamentSchema.extend({
 export const addonSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   type: z.enum(["accessory", "packaging"], { message: "Tipo inválido" }),
+  purchasePrice: z.number().positive("Preço de compra deve ser positivo"),
+  packageQuantity: z
+    .number()
+    .int()
+    .positive("Quantidade comprada deve ser positiva"),
+  purchaseUrl: z.string().optional().nullable(),
+  stockQuantity: z
+    .number()
+    .int()
+    .nonnegative("Quantidade em estoque não pode ser negativa")
+    .optional(),
+  packageSize: z.number().int().positive("Tamanho do pacote deve ser positivo"),
+  note: z.string().optional(),
   costPerUnit: z.number().positive("Custo unitário deve ser positivo"),
   active: z.boolean(),
 });

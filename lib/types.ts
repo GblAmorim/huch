@@ -46,7 +46,13 @@ export interface Addon {
   id: string;
   name: string;
   type: AddonType;
-  costPerUnit: number; // R$ por unidade
+  purchasePrice: number;
+  packageQuantity: number;
+  packageSize: number;
+  purchaseUrl: string;
+  stockQuantity: number;
+  note: string;
+  costPerUnit: number;
   active: boolean;
   createdAt: string;
 }
@@ -54,6 +60,12 @@ export interface Addon {
 export interface NewAddon {
   name: string;
   type: AddonType;
+  purchasePrice: number;
+  packageQuantity: number;
+  packageSize: number;
+  purchaseUrl: string;
+  stockQuantity: number;
+  note: string;
   costPerUnit: number;
   active?: boolean;
 }

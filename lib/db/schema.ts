@@ -42,7 +42,13 @@ export const addons = pgTable("addons", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   type: text("type").notNull(), // 'accessory' | 'packaging'
+  purchasePrice: real("purchase_price").notNull(),
+  packageQuantity: real("package_quantity").notNull(),
+  purchaseUrl: text("purchase_url"),
+  stockQuantity: real("stock_quantity").notNull(),
+  packageSize: real("package_size").notNull(),
   costPerUnit: real("cost_per_unit").notNull(), // R$ por unidade
+  note: text("note"),
   active: boolean("active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

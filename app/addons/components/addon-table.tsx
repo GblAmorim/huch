@@ -15,7 +15,9 @@ export function AddonTable() {
 
   if (loading) return <p className="text-muted-foreground">Carregando...</p>;
   if (addons.length === 0)
-    return <p className="text-muted-foreground">Nenhum addon cadastrado.</p>;
+    return (
+      <p className="text-muted-foreground">Nenhum adicional cadastrado.</p>
+    );
 
   return (
     <Table>

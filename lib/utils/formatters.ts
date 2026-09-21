@@ -19,3 +19,13 @@ export function formatDate(value: string | Date): string {
     year: "numeric",
   });
 }
+
+export function formatBRL(value: number, fractionDigits = 2): string {
+  const n = Number(value);
+  return (Number.isFinite(n) ? n : 0).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+  });
+}

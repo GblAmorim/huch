@@ -1,7 +1,7 @@
 "use client";
 
 import type { PricingRecord } from "@/lib/types";
-import { formatMoney } from "@/lib/utils";
+import { formatMoney } from "@/lib/utils/formatters";
 
 const LABEL_PRODUCTION: Array<{
   key: keyof typeof import("@/lib/types");

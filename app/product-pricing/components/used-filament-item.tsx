@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { formatMoney } from "@/lib/utils";
+import { formatMoney } from "@/lib/utils/formatters";
 import { Trash2 } from "lucide-react";
 import React from "react";
 

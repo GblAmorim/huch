@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { formatMoney, formatDate } from "@/lib/utils";
+import { formatMoney, formatDate } from "@/lib/utils/formatters";
 import type { PricingRecord } from "@/lib/types";
 import { ProductDetail } from "./product-details";
 

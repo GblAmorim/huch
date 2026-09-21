@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/formatters";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -14,9 +14,9 @@ import {
 
 const NAV_ITEMS = [
   { href: "/pricing", label: "Precificação" },
-  { href: "/settings", label: "Dados Fixos" },
+  { href: "/baseline", label: "Base de Cálculo" },
   { href: "/filaments", label: "Filamentos" },
-  { href: "/addons", label: "Addons" },
+  { href: "/addons", label: "Adicionais" },
   { href: "/products", label: "Produtos" },
 ];
 

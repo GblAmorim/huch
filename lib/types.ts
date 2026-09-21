@@ -37,36 +37,70 @@ export interface NewFilament {
 // ============================================================
 // DOMÍNIO: Addons
 // Registrado no cadastro e usado na precificação:
-//  - 'accessory'  → custo de PRODUÇÃO (parafusos, rolamentos, peças externas)
+//  - 'accessory'  → custo de PRODUÇÃO (parafusos, rolamentos)
 //  - 'packaging'  → custo de LOGÍSTICA (embalagem, proteção)
 // ============================================================
+
 export type AddonType = "accessory" | "packaging";
 
+/** Como o item foi comprado (usado para rotular o campo de conteúdo) */
+export type PurchaseUnit = "unit" | "pack" | "roll" | "bottle" | "box";
+
+/** Em que o conteúdo é medido — define a família de conversão */
+export type ContainedUnit =
+  | "unit"
+  | "m"
+  | "cm"
+  | "kg"
+  | "g"
+  | "l"
+  | "ml"
+  | "m2";
+
+/** Como o item entra no produto */
+export type ConsumptionType = "exact" | "estimated" | "perOrder";
+
+/** Registro persistido (o que vem da API — datas serializadas em string) */
 export interface Addon {
   id: string;
   name: string;
   type: AddonType;
   purchasePrice: number;
+  purchaseUnit: PurchaseUnit;
   packageQuantity: number;
-  packageSize: number;
+  containedAmount: number;
+  containedUnit: ContainedUnit;
+  consumptionType: ConsumptionType;
+  consumptionUnit: ContainedUnit;
+  quantityUsed: number;
+  wastePercentage: number;
+  isPerOrder: boolean;
+  costPerUnit: number; // derivado: custo por 1 containedUnit
+  estimatedCostPerProduct: number; // derivado: custo por peça (ou por pedido)
   purchaseUrl: string;
   stockQuantity: number;
   note: string;
-  costPerUnit: number;
   active: boolean;
   createdAt: string;
 }
 
+/** Payload de criação (o que o cliente ENVIA — sem os derivados) */
 export interface NewAddon {
   name: string;
   type: AddonType;
   purchasePrice: number;
+  purchaseUnit: PurchaseUnit;
   packageQuantity: number;
-  packageSize: number;
-  purchaseUrl: string;
-  stockQuantity: number;
-  note: string;
-  costPerUnit: number;
+  containedAmount: number;
+  containedUnit: ContainedUnit;
+  consumptionType: ConsumptionType;
+  consumptionUnit: ContainedUnit;
+  quantityUsed: number;
+  wastePercentage: number;
+  isPerOrder: boolean;
+  purchaseUrl?: string;
+  stockQuantity?: number;
+  note?: string;
   active?: boolean;
 }
 
@@ -77,7 +111,7 @@ export interface AddonLine {
   type: AddonType;
   costPerUnit: number;
   quantity: number;
-  total: number; // costPerUnit * quantity
+  total: number;
 }
 
 // ============================================================

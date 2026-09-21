@@ -8,6 +8,12 @@ import {
   boolean,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
+import {
+  AddonType,
+  ConsumptionType,
+  ContainedUnit,
+  PurchaseUnit,
+} from "../types";
 
 // ── Filamentos (cadastro + precificação) ──────────────
 export const filaments = pgTable(
@@ -41,14 +47,44 @@ export const filaments = pgTable(
 export const addons = pgTable("addons", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
-  type: text("type").notNull(), // 'accessory' | 'packaging'
+  type: text("type").$type<AddonType>().notNull(), // 'accessory' | 'packaging'
+
+  // ── Como você comprou ──
   purchasePrice: real("purchase_price").notNull(),
-  packageQuantity: real("package_quantity").notNull(),
-  purchaseUrl: text("purchase_url"),
-  stockQuantity: real("stock_quantity").notNull(),
-  packageSize: real("package_size").notNull(),
-  costPerUnit: real("cost_per_unit").notNull(), // R$ por unidade
-  note: text("note"),
+  purchaseUnit: text("purchase_unit")
+    .$type<PurchaseUnit>()
+    .notNull()
+    .default("pack"),
+  packageQuantity: real("package_quantity").notNull().default(1), // quantos pacotes/rolos
+  containedAmount: real("contained_amount").notNull().default(1), // conteúdo de 1 pacote/rolo
+  containedUnit: text("contained_unit")
+    .$type<ContainedUnit>()
+    .notNull()
+    .default("unit"),
+
+  // ── Como você usa no produto ──
+  consumptionType: text("consumption_type")
+    .$type<ConsumptionType>()
+    .notNull()
+    .default("exact"),
+  consumptionUnit: text("consumption_unit")
+    .$type<ContainedUnit>()
+    .notNull()
+    .default("unit"),
+  quantityUsed: real("quantity_used").notNull().default(0),
+  wastePercentage: real("waste_percentage").notNull().default(0),
+  isPerOrder: boolean("is_per_order").notNull().default(false),
+
+  // ── Derivados (calculados no service, nunca digitados) ──
+  costPerUnit: real("cost_per_unit").notNull().default(0), // custo por 1 containedUnit
+  estimatedCostPerProduct: real("estimated_cost_per_product")
+    .notNull()
+    .default(0),
+
+  // ── Extras ──
+  purchaseUrl: text("purchase_url").notNull().default(""),
+  stockQuantity: real("stock_quantity").notNull().default(0),
+  note: text("note").notNull().default(""),
   active: boolean("active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

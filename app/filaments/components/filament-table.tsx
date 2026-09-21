@@ -9,10 +9,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Pencil } from "lucide-react";
 import { Filament } from "@/lib/types";
+import { formatBRL } from "@/lib/utils/formatters";
 
 interface FilamentTableProps {
   onEdit?: (filament: Filament) => void;
@@ -60,7 +60,7 @@ export function FilamentTable({ onEdit }: FilamentTableProps) {
             <TableCell>{f.material}</TableCell>
             <TableCell>{f.type}</TableCell>
             <TableCell>{f.color}</TableCell>
-            <TableCell>{formatMoney(f.pricePerKg)}</TableCell>
+            <TableCell>{formatBRL(f.pricePerKg, 2)}</TableCell>
             <TableCell>{f.stockQuantity / 1000} Kg</TableCell>
             <TableCell>{f.calibrationFlow}</TableCell>
             <TableCell>{f.active ? "Ativo" : "Inativo"}</TableCell>

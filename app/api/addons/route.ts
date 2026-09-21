@@ -1,16 +1,31 @@
 import { NextResponse } from "next/server";
 import { getAllAddons, createAddon } from "@/lib/services/addon.service";
-import { addonSchema } from "@/lib/schemas";
+import { addonCreateSchema } from "@/lib/schemas";
 
-export async function GET() {
-  const addons = await getAllAddons();
-  return NextResponse.json(addons);
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const activeOnly = searchParams.get("active") === "true";
+    const addons = await getAllAddons(activeOnly);
+    return NextResponse.json(addons);
+  } catch (err) {
+    console.error("GET /api/addons:", err);
+    return NextResponse.json(
+      { error: "Erro ao listar addons" },
+      { status: 500 },
+    );
+  }
 }
 
 export async function POST(req: Request) {
-  const body = await req.json();
-  const parsed = addonSchema.safeParse(body);
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
+  }
 
+  const parsed = addonCreateSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Dados inválidos", details: parsed.error.flatten() },
@@ -18,6 +33,14 @@ export async function POST(req: Request) {
     );
   }
 
-  const created = await createAddon(parsed.data);
-  return NextResponse.json(created, { status: 201 });
+  try {
+    const created = await createAddon(parsed.data);
+    return NextResponse.json(created, { status: 201 });
+  } catch (err) {
+    console.error("POST /api/addons:", err);
+    return NextResponse.json(
+      { error: "Erro ao salvar addon" },
+      { status: 500 },
+    );
+  }
 }

@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import React from "react";
-import { formatMoney } from "@/lib/utils";
+import { formatMoney } from "@/lib/utils/formatters";
 
 type Props = {
   addon: UsedAddon;

@@ -50,13 +50,31 @@ export function useAddons(activeOnly = false) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error ?? "Erro ao criar addon");
+
+    // Lê sempre como texto — nunca quebra por corpo vazio/não-JSON
+    const raw = await res.text();
+    let body: unknown = null;
+    if (raw) {
+      try {
+        body = JSON.parse(raw);
+      } catch {
+        body = null;
+      }
     }
-    const created = await res.json();
+
+    if (!res.ok) {
+      const message =
+        body && typeof body === "object" && "error" in body
+          ? String((body as { error: unknown }).error)
+          : `Erro ${res.status} ao criar addon`;
+      throw new Error(message);
+    }
+
+    if (!body) throw new Error("Resposta vazia do servidor");
+
+    const created = body as Addon;
     setAddons((prev) => [created, ...prev]);
-    return created as Addon;
+    return created;
   }, []);
 
   return { addons, loading, error, reload, create };

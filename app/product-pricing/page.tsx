@@ -24,7 +24,7 @@ import {
   PopoverTitle,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { formatMoney } from "@/lib/utils";
+import { formatMoney } from "@/lib/utils/formatters";
 
 const ProductPricingPage = () => {
   const { state, dispatch, canCalculate } = useProductPricing();
@@ -222,9 +222,7 @@ const ProductPricingPage = () => {
                         </Popover>
                       </CardHeader>
                       <CardContent>
-                        <LaborDataForm
-                          dispatch={dispatch}
-                        />
+                        <LaborDataForm dispatch={dispatch} />
                       </CardContent>
                     </Card>
                     <Card>

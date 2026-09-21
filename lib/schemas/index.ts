@@ -53,24 +53,76 @@ export const filamentFormSchema = filamentSchema.extend({
   rollQuantity: z.number().int().min(1, "Informe a quantidade de rolos"),
 });
 
+export const PURCHASE_UNITS = [
+  "unit",
+  "pack",
+  "roll",
+  "bottle",
+  "box",
+] as const;
+export const CONTAINED_UNITS = [
+  "unit",
+  "m",
+  "cm",
+  "kg",
+  "g",
+  "l",
+  "ml",
+  "m2",
+] as const;
+export const CONSUMPTION_TYPES = ["exact", "estimated", "perOrder"] as const;
+
+/**
+ * Schema do FORMULÁRIO (o que o usuário digita).
+ * NÃO inclui costPerUnit/estimatedCostPerProduct — são derivados
+ * calculados no service. Sem .default() para manter z.input === z.output.
+ */
 export const addonSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   type: z.enum(["accessory", "packaging"], { message: "Tipo inválido" }),
+
+  // Compra
   purchasePrice: z.number().positive("Preço de compra deve ser positivo"),
+  purchaseUnit: z.enum(PURCHASE_UNITS, {
+    message: "Formato de compra inválido",
+  }),
   packageQuantity: z
     .number()
-    .int()
-    .positive("Quantidade comprada deve ser positiva"),
-  purchaseUrl: z.string().optional().nullable(),
-  stockQuantity: z
+    .positive("Informe quantos pacotes/rolos você comprou"),
+  containedAmount: z
     .number()
-    .int()
-    .nonnegative("Quantidade em estoque não pode ser negativa")
-    .optional(),
-  packageSize: z.number().int().positive("Tamanho do pacote deve ser positivo"),
+    .positive("Informe o conteúdo de cada pacote/rolo"),
+  containedUnit: z.enum(CONTAINED_UNITS, {
+    message: "Unidade de conteúdo inválida",
+  }),
+
+  // Consumo
+  consumptionType: z.enum(CONSUMPTION_TYPES, {
+    message: "Modo de consumo inválido",
+  }),
+  consumptionUnit: z.enum(CONTAINED_UNITS, {
+    message: "Unidade de consumo inválida",
+  }),
+  quantityUsed: z
+    .number()
+    .nonnegative("Quantidade usada não pode ser negativa"),
+  wastePercentage: z.number().min(0, "Mínimo 0%").max(100, "Máximo 100%"),
+  isPerOrder: z.boolean(),
+
+  // Extras
+  purchaseUrl: z.string().optional(),
+  stockQuantity: z.number().nonnegative().optional(),
   note: z.string().optional(),
-  costPerUnit: z.number().positive("Custo unitário deve ser positivo"),
   active: z.boolean(),
+});
+
+/**
+ * Schema da API — aceita os derivados se vierem do cliente,
+ * mas o service SEMPRE recalcula (servidor é fonte da verdade).
+ */
+export const addonCreateSchema = addonSchema.extend({
+  costPerUnit: z.number().nonnegative().optional(),
+  estimatedCostPerProduct: z.number().nonnegative().optional(),
 });
 
 export const baselineSchema = z.object({
@@ -133,6 +185,7 @@ export const labelOptionSchema = z.object({
 export type FilamentInput = z.infer<typeof filamentSchema>;
 export type FilamentFormValues = z.infer<typeof filamentFormSchema>;
 export type AddonInput = z.infer<typeof addonSchema>;
+export type AddonCreateInput = z.infer<typeof addonCreateSchema>;
 export type BaselineInput = z.infer<typeof baselineSchema>;
 export type PrintingDataInput = z.infer<typeof printingDataSchema>;
 export type AddonLineInput = z.infer<typeof addonLineSchema>;

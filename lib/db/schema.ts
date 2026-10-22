@@ -13,6 +13,9 @@ import {
   ConsumptionType,
   ContainedUnit,
   PurchaseUnit,
+  PrinterEquipment,
+  FixedCostItem,
+  TaxItem,
 } from "../types";
 
 // ── Filamentos (cadastro + precificação) ──────────────
@@ -92,11 +95,54 @@ export const addons = pgTable("addons", {
 // ── Dados fixos (PricingBaseline) — linha única ──────
 export const pricingBaseline = pgTable("pricing_baseline", {
   id: uuid("id").primaryKey().defaultRandom(),
+
+  // ── 1. Impressora ──
+  printerBrand: text("printer_brand").default("").notNull(),
+  printerModel: text("printer_model").default("").notNull(),
+  printerCost: real("printer_cost").default(0).notNull(),
+  printerPowerWatts: real("printer_power_watts").notNull(), // máxima
+  printerPowerAvgWatts: real("printer_power_avg_watts").default(0).notNull(), // 0 = usa 60% da máxima
+  printerLifespanHours: real("printer_lifespan_hours").default(0).notNull(),
+  printerAddons: jsonb("printer_addons")
+    .$type<PrinterEquipment[]>()
+    .default([])
+    .notNull(),
+
+  // ── 2. Energia ──
+  electricityFlag: text("electricity_flag").default("green").notNull(), // metadado (sem fator)
   electricityCostPerKwh: real("electricity_cost_per_kwh").notNull(),
-  printerPowerWatts: real("printer_power_watts").notNull(),
-  laborCostPerHour: real("labor_cost_per_hour").notNull(),
+
+  // ── 3. Mão de obra ──
+  laborCostPerHour: real("labor_cost_per_hour").notNull(), // impressão (compatível c/ motor atual)
+  modelingCostPerHour: real("modeling_cost_per_hour").default(0).notNull(),
+  assemblyCostPerHour: real("assembly_cost_per_hour").default(0).notNull(),
+  finishingCostPerHour: real("finishing_cost_per_hour").default(0).notNull(),
+
+  // ── 4. Transporte ──
+  hasOwnDelivery: boolean("has_own_delivery").default(false).notNull(),
+  fuelCostPerLiter: real("fuel_cost_per_liter").default(0).notNull(),
+  vehicleConsumptionKmPerLiter: real("vehicle_consumption_km_per_liter")
+    .default(0)
+    .notNull(),
+  kmPerDelivery: real("km_per_delivery").default(0).notNull(),
+  deliveriesPerRoute: real("deliveries_per_route").default(1).notNull(),
+  extraCostPerKm: real("extra_cost_per_km").default(0).notNull(),
   packagingCostPerOrder: real("packaging_cost_per_order").default(0).notNull(),
   shippingCostPerKm: real("shipping_cost_per_km").default(0).notNull(),
+
+  // ── 5. Custos fixos mensais ──
+  fixedCosts: jsonb("fixed_costs")
+    .$type<FixedCostItem[]>()
+    .default([])
+    .notNull(),
+  productiveHoursPerMonth: real("productive_hours_per_month")
+    .default(160)
+    .notNull(),
+
+  // ── 6. Impostos e taxas ──
+  taxes: jsonb("taxes").$type<TaxItem[]>().default([]).notNull(),
+
+  // ── 7. Margem e taxas de pagamento ──
   profitMargin: real("profit_margin").notNull(),
   failureRate: real("failure_rate").default(5).notNull(),
   overheadPercentage: real("overhead_percentage").default(10).notNull(),

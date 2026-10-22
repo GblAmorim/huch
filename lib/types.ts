@@ -115,35 +115,123 @@ export interface AddonLine {
 }
 
 // ============================================================
+// DOMÍNIO: Baseline — equipamentos, custos fixos e impostos
+// ============================================================
+
+/** Equipamento adicional da impressora (AMS, exaustor, iluminação…) */
+export interface PrinterEquipment {
+  name: string;
+  cost: number; // R$ pago
+  powerWatts: number; // consumo médio em uso (W)
+  lifespanHours: number; // vida útil estimada (h)
+}
+
+export type TaxKind = "percentage" | "fixed";
+export type TaxOrigin = "government" | "marketplace";
+export type TaxBase = "price" | "cost" | "order";
+export type TaxIncidence = "commission" | "passThrough";
+
+/** Item de imposto/taxa cadastrado dinamicamente */
+export interface TaxItem {
+  name: string;
+  kind: TaxKind; // % ou R$ fixo
+  value: number;
+  origin: TaxOrigin; // governo ou marketplace
+  base: TaxBase; // sobre preço de venda, sobre custo, ou por pedido
+  incidence: TaxIncidence; // comissão (divide) ou repasse (soma)
+}
+
+export type FixedCostCategory =
+  | "Pessoal"
+  | "Espaço"
+  | "Software"
+  | "Marketing"
+  | "Seguros"
+  | "Outros";
+
+/** Custo fixo mensal cadastrado dinamicamente */
+export interface FixedCostItem {
+  name: string;
+  value: number; // R$/mês
+  category: FixedCostCategory;
+}
+
+/** Bandeira tarifária — metadado informativo (o kWh final já a embute) */
+export type ElectricityFlag = "green" | "yellow" | "red1" | "red2" | "scarcity";
+
+// ============================================================
 // DOMÍNIO: PricingBaseline
 // Formulário de dados "fixos" — base para o cálculo
 // ============================================================
 export interface PricingBaseline {
   id: string;
-  // Custos de produção
-  electricityCostPerKwh: number; // R$/kWh
-  printerPowerWatts: number; // W
-  laborCostPerHour: number; // R$/h (mão de obra de impressão)
-  // Custos de logística (default 0 — opcional no MVP)
-  packagingCostPerOrder: number; // R$ por pedido (embalagem/proteção)
-  shippingCostPerKm: number; // R$/km (gasolina/frete)
-  // Margens e taxas
-  profitMargin: number; // % (ex: 30 = 30%)
-  failureRate: number; // % taxa de falha padrão
-  overheadPercentage: number; // % custos indiretos
-  updatedAt: string;
+  // ── Impressora ──
+  printerBrand?: string;
+  printerModel?: string;
+  printerCost?: number;
+  printerPowerWatts: number;
+  printerPowerAvgWatts?: number;
+  printerLifespanHours?: number;
+  printerAddons?: PrinterEquipment[];
+  // ── Energia ──
+  electricityFlag?: ElectricityFlag;
+  electricityCostPerKwh: number;
+  // ── Mão de obra ──
+  laborCostPerHour: number;
+  modelingCostPerHour?: number;
+  assemblyCostPerHour?: number;
+  finishingCostPerHour?: number;
+  // ── Transporte ──
+  hasOwnDelivery?: boolean;
+  fuelCostPerLiter?: number;
+  vehicleConsumptionKmPerLiter?: number;
+  kmPerDelivery?: number;
+  deliveriesPerRoute?: number;
+  extraCostPerKm?: number;
+  packagingCostPerOrder: number;
+  shippingCostPerKm: number;
+  // ── Custos fixos ──
+  fixedCosts?: FixedCostItem[];
+  productiveHoursPerMonth?: number;
+  // ── Impostos ──
+  taxes?: TaxItem[];
+  // ── Margem e pagamentos ──
+  profitMargin: number;
+  failureRate: number;
+  overheadPercentage: number;
   paymentFees: Record<PaymentMethod, number>;
+  updatedAt: string;
 }
 
 export interface NewPricingBaseline {
-  electricityCostPerKwh: number;
+  printerBrand?: string;
+  printerModel?: string;
+  printerCost?: number;
   printerPowerWatts: number;
+  printerPowerAvgWatts?: number;
+  printerLifespanHours?: number;
+  printerAddons?: PrinterEquipment[];
+  electricityFlag?: ElectricityFlag;
+  electricityCostPerKwh: number;
   laborCostPerHour: number;
-  packagingCostPerOrder?: number;
-  shippingCostPerKm?: number;
+  modelingCostPerHour?: number;
+  assemblyCostPerHour?: number;
+  finishingCostPerHour?: number;
+  hasOwnDelivery?: boolean;
+  fuelCostPerLiter?: number;
+  vehicleConsumptionKmPerLiter?: number;
+  kmPerDelivery?: number;
+  deliveriesPerRoute?: number;
+  extraCostPerKm?: number;
+  packagingCostPerOrder: number;
+  shippingCostPerKm: number;
+  fixedCosts?: FixedCostItem[];
+  productiveHoursPerMonth?: number;
+  taxes?: TaxItem[];
   profitMargin: number;
-  failureRate?: number;
-  overheadPercentage?: number;
+  failureRate: number;
+  overheadPercentage: number;
+  paymentFees: Record<PaymentMethod, number>;
 }
 
 // ============================================================

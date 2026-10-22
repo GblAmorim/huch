@@ -125,14 +125,81 @@ export const addonCreateSchema = addonSchema.extend({
   estimatedCostPerProduct: z.number().nonnegative().optional(),
 });
 
+// ── Baseline: listas dinâmicas ──
+export const printerAddonSchema = z.object({
+  name: z.string().min(1, "Nome é obrigatório"),
+  cost: z.number().nonnegative(),
+  powerWatts: z.number().nonnegative(),
+  lifespanHours: z.number().nonnegative(),
+});
+
+export const taxItemSchema = z.object({
+  name: z.string().min(1, "Nome é obrigatório"),
+  kind: z.enum(["percentage", "fixed"]),
+  value: z.number().nonnegative(),
+  origin: z.enum(["government", "marketplace"]),
+  base: z.enum(["price", "cost", "order"]),
+  incidence: z.enum(["commission", "passThrough"]),
+});
+
+export const fixedCostItemSchema = z.object({
+  name: z.string().min(1, "Nome é obrigatório"),
+  value: z.number().nonnegative(),
+  category: z.enum([
+    "Pessoal",
+    "Espaço",
+    "Software",
+    "Marketing",
+    "Seguros",
+    "Outros",
+  ]),
+});
+
+// ── Baseline: formulário completo ──
+// Sem .default(): o form fornece defaultValues (z.input === z.output).
 export const baselineSchema = z.object({
+  // 1. Impressora
+  printerBrand: z.string(),
+  printerModel: z.string(),
+  printerCost: z.number().nonnegative(),
+  printerPowerWatts: z.number().positive("Potência máxima deve ser positiva"),
+  printerPowerAvgWatts: z.number().nonnegative(),
+  printerLifespanHours: z.number().nonnegative(),
+  printerAddons: z.array(printerAddonSchema),
+
+  // 2. Energia
+  electricityFlag: z.enum(["green", "yellow", "red1", "red2", "scarcity"]),
   electricityCostPerKwh: z
     .number()
     .positive("Custo de energia deve ser positivo"),
-  printerPowerWatts: z.number().positive("Potência deve ser positiva"),
+
+  // 3. Mão de obra
   laborCostPerHour: z.number().nonnegative("Mão de obra não pode ser negativa"),
+  modelingCostPerHour: z.number().nonnegative(),
+  assemblyCostPerHour: z.number().nonnegative(),
+  finishingCostPerHour: z.number().nonnegative(),
+
+  // 4. Transporte
+  hasOwnDelivery: z.boolean(),
+  fuelCostPerLiter: z.number().nonnegative(),
+  vehicleConsumptionKmPerLiter: z.number().nonnegative(),
+  kmPerDelivery: z.number().nonnegative(),
+  deliveriesPerRoute: z.number().int().min(1),
+  extraCostPerKm: z.number().nonnegative(),
   packagingCostPerOrder: z.number().nonnegative(),
   shippingCostPerKm: z.number().nonnegative(),
+
+  // 5. Custos fixos
+  fixedCosts: z.array(fixedCostItemSchema),
+  productiveHoursPerMonth: z
+    .number()
+    .int()
+    .min(1, "Informe horas produtivas por mês"),
+
+  // 6. Impostos
+  taxes: z.array(taxItemSchema),
+
+  // 7. Margem e pagamentos
   profitMargin: z.number().min(0).max(500, "Margem irreal"),
   failureRate: z.number().min(0).max(100),
   overheadPercentage: z.number().min(0).max(100),
@@ -186,6 +253,9 @@ export type FilamentInput = z.infer<typeof filamentSchema>;
 export type FilamentFormValues = z.infer<typeof filamentFormSchema>;
 export type AddonInput = z.infer<typeof addonSchema>;
 export type AddonCreateInput = z.infer<typeof addonCreateSchema>;
+export type PrinterAddonInput = z.infer<typeof printerAddonSchema>;
+export type TaxItemInput = z.infer<typeof taxItemSchema>;
+export type FixedCostItemInput = z.infer<typeof fixedCostItemSchema>;
 export type BaselineInput = z.infer<typeof baselineSchema>;
 export type PrintingDataInput = z.infer<typeof printingDataSchema>;
 export type AddonLineInput = z.infer<typeof addonLineSchema>;

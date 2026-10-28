@@ -118,8 +118,8 @@ const ProductPricingPage = () => {
         },
       ],
       labor: {
-        modelingLaborCostPerHour: 3000,
-        postPrintingLaborCostPerHour: 1500,
+        modelingCostPerHour: 3000,
+        postPrintingCostPerHour: 1500,
       },
       logistics: {
         gasPricePerLitter: 600,
@@ -204,7 +204,7 @@ const ProductPricingPage = () => {
                                   Modelagem:{" "}
                                   {formatMoney(
                                     pricingBaselineData.labor
-                                      .modelingLaborCostPerHour,
+                                      .modelingCostPerHour,
                                   )}{" "}
                                   R$/h
                                 </p>
@@ -212,7 +212,7 @@ const ProductPricingPage = () => {
                                   Montagem:{" "}
                                   {formatMoney(
                                     pricingBaselineData.labor
-                                      .postPrintingLaborCostPerHour,
+                                      .postPrintingCostPerHour,
                                   )}{" "}
                                   R$/h
                                 </p>

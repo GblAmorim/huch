@@ -145,3 +145,22 @@ export const FIXED_COST_CATEGORIES = [
   "Seguros",
   "Outros",
 ] as const;
+
+export function coerceNumbers<T extends Record<string, unknown>>(obj: T): T {
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value === undefined) out[key] = 0;
+    else if (Array.isArray(value)) {
+      out[key] = value.map((item) =>
+        typeof item === "object" && item !== null
+          ? coerceNumbers(item as Record<string, unknown>)
+          : item,
+      );
+    } else if (typeof value === "object" && value !== null) {
+      out[key] = coerceNumbers(value as Record<string, unknown>);
+    } else {
+      out[key] = value;
+    }
+  }
+  return out as T;
+}

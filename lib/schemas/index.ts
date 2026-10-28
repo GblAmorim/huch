@@ -158,51 +158,36 @@ export const fixedCostItemSchema = z.object({
 // ── Baseline: formulário completo ──
 // Sem .default(): o form fornece defaultValues (z.input === z.output).
 export const baselineSchema = z.object({
-  // 1. Impressora
   printerBrand: z.string(),
   printerModel: z.string(),
-  printerCost: z.number().nonnegative(),
-  printerPowerWatts: z.number().positive("Potência máxima deve ser positiva"),
-  printerPowerAvgWatts: z.number().nonnegative(),
-  printerLifespanHours: z.number().nonnegative(),
+  printerCost: z.number().nonnegative().optional(),
+  printerPowerWatts: z
+    .number()
+    .positive("Potência máxima deve ser positiva")
+    .optional(),
+  printerPowerAvgWatts: z.number().nonnegative().optional(),
+  printerLifespanHours: z.number().nonnegative().optional(),
   printerAddons: z.array(printerAddonSchema),
-
-  // 2. Energia
   electricityFlag: z.enum(["green", "yellow", "red1", "red2", "scarcity"]),
   electricityCostPerKwh: z
     .number()
-    .positive("Custo de energia deve ser positivo"),
-
-  // 3. Mão de obra
-  laborCostPerHour: z.number().nonnegative("Mão de obra não pode ser negativa"),
-  modelingCostPerHour: z.number().nonnegative(),
-  assemblyCostPerHour: z.number().nonnegative(),
-  finishingCostPerHour: z.number().nonnegative(),
-
-  // 4. Transporte
+    .positive("Custo de energia deve ser positivo")
+    .optional(),
+  modelingCostPerHour: z.number().nonnegative().optional(),
+  postPrintingCostPerHour: z.number().nonnegative().optional(),
   hasOwnDelivery: z.boolean(),
-  fuelCostPerLiter: z.number().nonnegative(),
-  vehicleConsumptionKmPerLiter: z.number().nonnegative(),
-  kmPerDelivery: z.number().nonnegative(),
-  deliveriesPerRoute: z.number().int().min(1),
-  extraCostPerKm: z.number().nonnegative(),
-  packagingCostPerOrder: z.number().nonnegative(),
-  shippingCostPerKm: z.number().nonnegative(),
-
-  // 5. Custos fixos
+  fuelCostPerLiter: z.number().nonnegative().optional(),
+  vehicleConsumptionKmPerLiter: z.number().nonnegative().optional(),
+  kmPerDelivery: z.number().nonnegative().optional(),
+  deliveriesPerRoute: z.number().int().min(1).optional(),
+  extraCostPerKm: z.number().nonnegative().optional(),
+  packagingCostPerOrder: z.number().nonnegative().optional(),
+  shippingCostPerKm: z.number().nonnegative().optional(),
   fixedCosts: z.array(fixedCostItemSchema),
-  productiveHoursPerMonth: z
-    .number()
-    .int()
-    .min(1, "Informe horas produtivas por mês"),
-
-  // 6. Impostos
+  productiveHoursPerMonth: z.number().int().min(1).optional(),
   taxes: z.array(taxItemSchema),
-
-  // 7. Margem e pagamentos
-  profitMargin: z.number().min(0).max(500, "Margem irreal"),
-  failureRate: z.number().min(0).max(100),
-  overheadPercentage: z.number().min(0).max(100),
+  profitMargin: z.number().min(0).max(500).optional(),
+  failureRate: z.number().min(0).max(100).optional(),
   paymentFees: paymentFeesSchema,
 });
 

@@ -1,7 +1,7 @@
 import { Input } from "@/components/ui/input";
 
 interface MoneyInputProps {
-  value: number; // valor em reais
+  value?: number;
   onChange: (value: number) => void;
   placeholder?: string;
   disabled?: boolean;
@@ -13,7 +13,8 @@ export function MoneyInput({
   placeholder = "0,00",
   disabled = false,
 }: MoneyInputProps) {
-  const cents = Math.round(value * 100);
+  const hasValue = typeof value === "number" && Number.isFinite(value);
+  const cents = hasValue ? Math.round(value * 100) : 0;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const digits = e.target.value.replace(/\D/g, "");
@@ -22,10 +23,12 @@ export function MoneyInput({
     onChange(newCents / 100);
   };
 
-  const formatted = (cents / 100).toLocaleString("pt-BR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const formatted = hasValue
+    ? (cents / 100).toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })
+    : "";
 
   return (
     <Input

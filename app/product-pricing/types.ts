@@ -50,8 +50,8 @@ type PricingBaseline = {
     distanceKm: number;
   };
   labor: {
-    modelingLaborCostPerHour: number;
-    postPrintingLaborCostPerHour: number;
+    modelingCostPerHour: number;
+    postPrintingCostPerHour: number;
   };
   addons: RegisteredAddons[];
 };

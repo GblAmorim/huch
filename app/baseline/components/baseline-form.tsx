@@ -7,10 +7,10 @@ import {
   type Control,
   type FieldErrors,
   type FieldPath,
-  type FieldPathByValue, // ← novo
+  type FieldPathByValue,
   type UseFormRegister,
 } from "react-hook-form";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { baselineSchema, type BaselineInput } from "@/lib/schemas";
 import { useBaseline } from "@/lib/hooks/use-baseline";
@@ -32,41 +32,40 @@ import { MoneyInput } from "@/components/common/money-input";
 import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 import {
+  coerceNumbers,
   computeBaselineCosts,
   FIXED_COST_CATEGORIES,
   FLAG_OPTIONS,
   formatBRL,
 } from "@/lib/utils/baseline-costs";
 import { PaymentMethod } from "@/lib/types";
+import { SectionSummary } from "./section-summary";
 
 const EMPTY_VALUES: BaselineInput = {
   printerBrand: "",
   printerModel: "",
-  printerCost: 0,
-  printerPowerWatts: 0,
-  printerPowerAvgWatts: 0,
-  printerLifespanHours: 0,
+  printerCost: undefined,
+  printerPowerWatts: undefined,
+  printerPowerAvgWatts: undefined,
+  printerLifespanHours: undefined,
   printerAddons: [],
   electricityFlag: "green",
-  electricityCostPerKwh: 0,
-  laborCostPerHour: 0,
-  modelingCostPerHour: 0,
-  assemblyCostPerHour: 0,
-  finishingCostPerHour: 0,
+  electricityCostPerKwh: undefined,
+  modelingCostPerHour: undefined,
+  postPrintingCostPerHour: undefined,
   hasOwnDelivery: false,
-  fuelCostPerLiter: 0,
-  vehicleConsumptionKmPerLiter: 0,
-  kmPerDelivery: 0,
+  fuelCostPerLiter: undefined,
+  vehicleConsumptionKmPerLiter: undefined,
+  kmPerDelivery: undefined,
   deliveriesPerRoute: 1,
-  extraCostPerKm: 0,
-  packagingCostPerOrder: 0,
-  shippingCostPerKm: 0,
+  extraCostPerKm: undefined,
+  packagingCostPerOrder: undefined,
+  shippingCostPerKm: undefined,
   fixedCosts: [],
-  productiveHoursPerMonth: 160,
+  productiveHoursPerMonth: undefined,
   taxes: [],
-  profitMargin: 30,
-  failureRate: 5,
-  overheadPercentage: 10,
+  profitMargin: undefined,
+  failureRate: undefined,
   paymentFees: { ...DEFAULT_PAYMENT_FEES },
 };
 
@@ -75,7 +74,9 @@ const EMPTY_VALUES: BaselineInput = {
 const SELECT_CLASS =
   "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm";
 
-function MoneyField<TName extends FieldPathByValue<BaselineInput, number>>({
+function MoneyField<
+  TName extends FieldPathByValue<BaselineInput, number | undefined>,
+>({
   control,
   name,
   label,
@@ -93,7 +94,6 @@ function MoneyField<TName extends FieldPathByValue<BaselineInput, number>>({
         control={control}
         name={name}
         render={({ field }) => (
-          // field.value agora é tipado como number
           <MoneyInput value={field.value} onChange={field.onChange} />
         )}
       />
@@ -126,7 +126,9 @@ function NumberField({
         type="number"
         step={step}
         min={min}
-        {...register(name, { valueAsNumber: true })}
+        {...register(name, {
+          setValueAs: (v) => (v === "" ? undefined : Number(v)),
+        })}
       />
       {errors?.[name as keyof FieldErrors<BaselineInput>] && (
         <p className="text-sm text-destructive">
@@ -183,28 +185,27 @@ function SelectController<
 export function BaselineForm() {
   const { baseline, loading, saving, save } = useBaseline();
 
-  const defaultValues = useMemo<BaselineInput>(
-    () => ({
-      ...EMPTY_VALUES,
-      ...(baseline ?? {}),
-      paymentFees: {
-        ...DEFAULT_PAYMENT_FEES,
-        ...(baseline?.paymentFees ?? {}),
-      },
-    }),
-    [baseline],
-  );
-
   const {
     register,
     control,
     handleSubmit,
     watch,
-    formState: { errors },
+    reset,
+    formState: { errors, dirtyFields },
   } = useForm<BaselineInput>({
     resolver: zodResolver(baselineSchema),
-    defaultValues,
+    defaultValues: EMPTY_VALUES,
   });
+
+  useEffect(() => {
+    if (baseline) {
+      reset({
+        ...EMPTY_VALUES,
+        ...baseline,
+        paymentFees: { ...DEFAULT_PAYMENT_FEES, ...baseline.paymentFees },
+      });
+    }
+  }, [baseline, reset]);
 
   const addonsField = useFieldArray({ control, name: "printerAddons" });
   const taxesField = useFieldArray({ control, name: "taxes" });
@@ -215,8 +216,19 @@ export function BaselineForm() {
 
   async function onSubmit(data: BaselineInput) {
     if (saving) return;
+
+    const changed = Object.keys(dirtyFields).reduce<Record<string, unknown>>(
+      (acc, key) => {
+        acc[key] = data[key as keyof BaselineInput];
+        return acc;
+      },
+      {},
+    );
+
+    const payload = coerceNumbers(changed);
+
     try {
-      await save(data);
+      await save(payload as BaselineInput);
       toast.success("Baseline salva com sucesso!");
     } catch (err) {
       toast.error(
@@ -308,41 +320,54 @@ export function BaselineForm() {
                 {addonsField.fields.map((field, i) => (
                   <div
                     key={field.id}
-                    className="grid grid-cols-1 gap-2 rounded-md border p-3 md:grid-cols-[1fr_auto_auto_auto_auto]"
+                    className="grid gap-2 rounded-md border p-3 md:grid-cols-[1fr_auto_auto_auto_auto]"
                   >
-                    <Input
-                      placeholder="Nome (Ex: AMS)"
-                      {...register(`printerAddons.${i}.name`)}
-                    />
-                    <Controller
-                      control={control}
-                      name={`printerAddons.${i}.cost`}
-                      render={({ field }) => (
-                        <MoneyInput
-                          value={field.value}
-                          onChange={field.onChange}
-                        />
-                      )}
-                    />
-                    <Input
-                      type="number"
-                      placeholder="Potência (W)"
-                      {...register(`printerAddons.${i}.powerWatts`, {
-                        valueAsNumber: true,
-                      })}
-                    />
-                    <Input
-                      type="number"
-                      placeholder="Vida útil (h)"
-                      {...register(`printerAddons.${i}.lifespanHours`, {
-                        valueAsNumber: true,
-                      })}
-                    />
+                    <div className="w-20">
+                      <Label className="mb-2">Nome</Label>
+                      <Input
+                        placeholder="Ex: AMS"
+                        {...register(`printerAddons.${i}.name`)}
+                      />
+                    </div>
+                    <div>
+                      <Label className="mb-2">Custo (R$)</Label>
+                      <Controller
+                        control={control}
+                        name={`printerAddons.${i}.cost`}
+                        render={({ field }) => (
+                          <MoneyInput
+                            value={field.value}
+                            onChange={field.onChange}
+                          />
+                        )}
+                      />
+                    </div>
+                    <div>
+                      <Label className="mb-2">Potência (W)</Label>
+                      <Input
+                        type="number"
+                        placeholder="Potência (W)"
+                        {...register(`printerAddons.${i}.powerWatts`, {
+                          setValueAs: (v) => (v === "" ? undefined : Number(v)),
+                        })}
+                      />
+                    </div>
+                    <div>
+                      <Label className="mb-2">Vida útil (h)</Label>
+                      <Input
+                        type="number"
+                        placeholder="Vida útil (h)"
+                        {...register(`printerAddons.${i}.lifespanHours`, {
+                          setValueAs: (v) => (v === "" ? undefined : Number(v)),
+                        })}
+                      />
+                    </div>
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
                       onClick={() => addonsField.remove(i)}
+                      className="m-auto"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -350,6 +375,23 @@ export function BaselineForm() {
                 ))}
               </div>
             </CardContent>
+
+            <SectionSummary
+              lines={[
+                {
+                  label: "Depreciação por hora",
+                  value: formatBRL(rates.depreciationPerHour, 4),
+                  formula: `(${formatBRL(rates.printerTotalCost)} + adicionais) ÷ ${values.printerLifespanHours || "?"}h`,
+                },
+                {
+                  label: "Potência usada no cálculo",
+                  value: `${rates.powerUsedWatts} W`,
+                  formula: values.printerPowerAvgWatts
+                    ? `média informada: ${values.printerPowerAvgWatts} W`
+                    : `60% da máxima (${values.printerPowerWatts || "?"} W)`,
+                },
+              ]}
+            />
           </Card>
 
           {/* 2. Energia */}
@@ -374,6 +416,16 @@ export function BaselineForm() {
                 hint="Valor final da sua conta de luz (a bandeira já está embutida)"
               />
             </CardContent>
+
+            <SectionSummary
+              lines={[
+                {
+                  label: "Custo de energia por hora",
+                  value: formatBRL(rates.energyCostPerHour, 4),
+                  formula: `${rates.powerUsedWatts}W ÷ 1000 × ${formatBRL(values.electricityCostPerKwh ?? 0)}/kWh`,
+                },
+              ]}
+            />
           </Card>
 
           {/* 3. Mão de obra */}
@@ -384,25 +436,32 @@ export function BaselineForm() {
             <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <MoneyField
                 control={control}
-                name="laborCostPerHour"
-                label="Impressão — acompanhamento (R$/h)"
-              />
-              <MoneyField
-                control={control}
                 name="modelingCostPerHour"
                 label="Modelagem 3D (R$/h)"
               />
               <MoneyField
                 control={control}
-                name="assemblyCostPerHour"
-                label="Montagem das peças (R$/h)"
-              />
-              <MoneyField
-                control={control}
-                name="finishingCostPerHour"
-                label="Acabamento / pintura (R$/h)"
+                name="postPrintingCostPerHour"
+                label="Montagem e finalização (R$/h)"
               />
             </CardContent>
+
+            <SectionSummary
+              lines={[
+                {
+                  label: "Impressão (acompanhamento)",
+                  value: formatBRL(rates.laborPrintingPerHour, 4),
+                },
+                {
+                  label: "Modelagem",
+                  value: formatBRL(rates.laborModelingPerHour, 4),
+                },
+                {
+                  label: "Montagem",
+                  value: formatBRL(rates.laborAssemblyPerHour, 4),
+                },
+              ]}
+            />
           </Card>
 
           {/* 4. Transporte */}
@@ -472,6 +531,23 @@ export function BaselineForm() {
                 </div>
               )}
             </CardContent>
+
+            {values.hasOwnDelivery && (
+              <SectionSummary
+                lines={[
+                  {
+                    label: "Custo por km",
+                    value: formatBRL(rates.costPerKm, 4),
+                    formula: `${formatBRL(values.fuelCostPerLiter ?? 0)} ÷ ${values.vehicleConsumptionKmPerLiter || "?"} km/L + ${formatBRL(values.extraCostPerKm ?? 0)} extras`,
+                  },
+                  {
+                    label: "Custo por entrega",
+                    value: formatBRL(rates.costPerDelivery, 4),
+                    formula: `${formatBRL(rates.costPerKm, 4)} × ${values.kmPerDelivery || "?"} km`,
+                  },
+                ]}
+              />
+            )}
           </Card>
 
           {/* 5. Impostos */}
@@ -636,6 +712,21 @@ export function BaselineForm() {
                 </div>
               ))}
             </CardContent>
+
+            <SectionSummary
+              lines={[
+                {
+                  label: "Custo fixo por hora",
+                  value: formatBRL(rates.fixedCostPerHour, 4),
+                  formula: `${formatBRL(rates.monthlyFixedTotal)}/mês ÷ ${values.productiveHoursPerMonth || 160}h`,
+                },
+                {
+                  label: "Total de custos fixos",
+                  value: formatBRL(rates.monthlyFixedTotal, 2),
+                  formula: `${values.fixedCosts?.length ?? 0} item(ns) cadastrado(s)`,
+                },
+              ]}
+            />
           </Card>
 
           {/* 7. Margem e pagamentos */}
@@ -657,12 +748,6 @@ export function BaselineForm() {
                   label="Taxa de falha (%)"
                   hint="Default por impressão"
                 />
-                <NumberField
-                  register={register}
-                  name="overheadPercentage"
-                  label="Custos indiretos (%)"
-                  hint="Herança do MVP — substituído pelo rateio dos fixos"
-                />
               </div>
 
               <div className="space-y-2">
@@ -679,7 +764,8 @@ export function BaselineForm() {
                           step="0.01"
                           min="0"
                           {...register(`paymentFees.${method}`, {
-                            valueAsNumber: true,
+                            setValueAs: (v) =>
+                              v === "" ? undefined : Number(v),
                           })}
                         />
                       </div>
@@ -688,6 +774,21 @@ export function BaselineForm() {
                 </div>
               </div>
             </CardContent>
+
+            <SectionSummary
+              lines={[
+                {
+                  label: "Margem de lucro",
+                  value: `${values.profitMargin ?? 0}%`,
+                  formula: "aplicada sobre o custo total na precificação",
+                },
+                {
+                  label: "Taxas de pagamento",
+                  value: `${Object.values(values.paymentFees ?? {}).filter((f) => f > 0).length} método(s) com taxa`,
+                  formula: "aplicadas no preço final por método",
+                },
+              ]}
+            />
           </Card>
 
           <Button type="submit" disabled={saving} className="w-full md:w-auto">
@@ -699,7 +800,7 @@ export function BaselineForm() {
         <div className="lg:col-span-1">
           <Card className="lg:sticky lg:top-24">
             <CardHeader>
-              <CardTitle>Resumo do cálculo</CardTitle>
+              <CardTitle>Visão geral</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <SummaryRow
@@ -709,12 +810,10 @@ export function BaselineForm() {
               <SummaryRow
                 label="Depreciação por hora"
                 value={rates.depreciationPerHour}
-                hint={`Impressora + ${rates.printerTotalCost > 0 ? formatBRL(rates.printerTotalCost) : "R$ 0"} ÷ vida útil`}
               />
               <SummaryRow
                 label="Custos fixos por hora"
                 value={rates.fixedCostPerHour}
-                hint={`${formatBRL(rates.monthlyFixedTotal)}/mês ÷ ${values.productiveHoursPerMonth || 160}h`}
               />
               <SummaryRow
                 label="Mão de obra (impressão)"
@@ -726,24 +825,6 @@ export function BaselineForm() {
                 value={rates.totalCostPerHour}
                 bold
               />
-              <Separator />
-              <SummaryRow
-                label="Mão de obra modelagem"
-                value={rates.laborModelingPerHour}
-              />
-              <SummaryRow
-                label="Mão de obra montagem"
-                value={rates.laborAssemblyPerHour}
-              />
-              {values.hasOwnDelivery && (
-                <>
-                  <SummaryRow label="Custo por km" value={rates.costPerKm} />
-                  <SummaryRow
-                    label="Custo por entrega"
-                    value={rates.costPerDelivery}
-                  />
-                </>
-              )}
             </CardContent>
           </Card>
         </div>

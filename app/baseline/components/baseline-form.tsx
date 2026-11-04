@@ -380,11 +380,11 @@ export function BaselineForm() {
               lines={[
                 {
                   label: "Depreciação por hora",
-                  value: formatBRL(rates.depreciationPerHour, 4),
-                  formula: `(${formatBRL(rates.printerTotalCost)} + adicionais) ÷ ${values.printerLifespanHours || "?"}h`,
+                  value: formatBRL(rates.depreciationPerHour, 2),
+                  formula: `(impressora + adicionais) ÷ vida útil = ${formatBRL(rates.printerTotalCost)} ÷ ${values.printerLifespanHours || "?"}h`,
                 },
                 {
-                  label: "Potência usada no cálculo",
+                  label: "Potência para cálculo de energia",
                   value: `${rates.powerUsedWatts} W`,
                   formula: values.printerPowerAvgWatts
                     ? `média informada: ${values.printerPowerAvgWatts} W`
@@ -445,23 +445,6 @@ export function BaselineForm() {
                 label="Montagem e finalização (R$/h)"
               />
             </CardContent>
-
-            <SectionSummary
-              lines={[
-                {
-                  label: "Impressão (acompanhamento)",
-                  value: formatBRL(rates.laborPrintingPerHour, 4),
-                },
-                {
-                  label: "Modelagem",
-                  value: formatBRL(rates.laborModelingPerHour, 4),
-                },
-                {
-                  label: "Montagem",
-                  value: formatBRL(rates.laborAssemblyPerHour, 4),
-                },
-              ]}
-            />
           </Card>
 
           {/* 4. Transporte */}
@@ -814,10 +797,6 @@ export function BaselineForm() {
               <SummaryRow
                 label="Custos fixos por hora"
                 value={rates.fixedCostPerHour}
-              />
-              <SummaryRow
-                label="Mão de obra (impressão)"
-                value={rates.laborPrintingPerHour}
               />
               <Separator />
               <SummaryRow

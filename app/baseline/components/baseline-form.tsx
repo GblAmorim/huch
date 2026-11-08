@@ -320,9 +320,9 @@ export function BaselineForm() {
                 {addonsField.fields.map((field, i) => (
                   <div
                     key={field.id}
-                    className="grid gap-2 rounded-md border p-3 md:grid-cols-[1fr_auto_auto_auto_auto]"
+                    className="flex gap-2 rounded-md border p-3"
                   >
-                    <div className="w-20">
+                    <div className="flex-1">
                       <Label className="mb-2">Nome</Label>
                       <Input
                         placeholder="Ex: AMS"
@@ -340,26 +340,6 @@ export function BaselineForm() {
                             onChange={field.onChange}
                           />
                         )}
-                      />
-                    </div>
-                    <div>
-                      <Label className="mb-2">Potência (W)</Label>
-                      <Input
-                        type="number"
-                        placeholder="Potência (W)"
-                        {...register(`printerAddons.${i}.powerWatts`, {
-                          setValueAs: (v) => (v === "" ? undefined : Number(v)),
-                        })}
-                      />
-                    </div>
-                    <div>
-                      <Label className="mb-2">Vida útil (h)</Label>
-                      <Input
-                        type="number"
-                        placeholder="Vida útil (h)"
-                        {...register(`printerAddons.${i}.lifespanHours`, {
-                          setValueAs: (v) => (v === "" ? undefined : Number(v)),
-                        })}
                       />
                     </div>
                     <Button
